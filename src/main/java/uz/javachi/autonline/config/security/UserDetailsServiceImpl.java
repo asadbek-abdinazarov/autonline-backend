@@ -1,0 +1,68 @@
+package uz.javachi.autonline.config.security;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uz.javachi.autonline.model.Role;
+import uz.javachi.autonline.model.User;
+import uz.javachi.autonline.repository.UserRepository;
+
+import java.util.Collection;
+import java.util.Set;
+
+import static uz.javachi.autonline.config.security.CustomUserDetails.getGrantedAuthorities;
+
+@Service("customUserDetailsServiceIml")
+@RequiredArgsConstructor
+@Slf4j
+public class UserDetailsServiceImpl implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        log.debug("Loading user by username: {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+
+        if (user.isAccountActive()) {
+            log.warn("User {} is inactive or deleted", username);
+            throw new UsernameNotFoundException("Invalid credentials");
+        }
+        log.debug("Found user by ID: {} -> Username: {}", user.getUserId(), user.getUsername());
+        return CustomUserDetails.fromUser(user);
+        /*return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .authorities(getAuthorities(user.getRoles()))
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(!user.getIsActive())
+                .build();*/
+    }
+
+    public UserDetails loadUserById(Integer id) throws UsernameNotFoundException {
+        log.debug("Loading user by ID: {}", id);
+        User user = userRepository.findByIdWithRoles(id).orElseThrow(
+                () -> new UsernameNotFoundException("User not found with id: " + id)
+        );
+        if (user.isAccountActive()) {
+            log.warn("User {} is inactive or deleted", user.getUsername());
+            throw new UsernameNotFoundException("Invalid credentials");
+        }
+        log.debug("Found user by ID: {} -> Username: {}", id, user.getUsername());
+        return CustomUserDetails.fromUser(user);
+    }
+
+    @SuppressWarnings("unused")
+    private Collection<? extends GrantedAuthority> getAuthorities(Set<Role> roles) {
+        return getGrantedAuthorities(roles);
+    }
+}
