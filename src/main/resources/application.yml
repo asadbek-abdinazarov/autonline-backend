@@ -1,13 +1,13 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/autonline}
+    url: ${A_DB_URL}
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USERNAME:autonline_user}
-    password: ${DB_PASSWORD:autonline123}
+    username: ${A_DB_USERNAME}
+    password: ${A_DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
+      ddl-auto: ${A_HIBERNATE_DDL_AUTO:update}
     show-sql: false
     properties:
       hibernate:
@@ -17,12 +17,12 @@ spring:
 # JWT Configuration
 app:
   jwt:
-    secret: ${JWT_SECRET:your-very-long-and-secure-secret-key-that-should-be-at-least-256-bits-long-and-randomly-generated}
-    expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+    secret: ${A_JWT_SECRET}
+    expiration: ${A_JWT_EXPIRATION} # 24 hours in milliseconds
 
 # Logging Configuration
 logging:
   level:
-    uz.javachi.autonline: ${LOG_LEVEL:DEBUG}
-    org.springframework.security: ${SECURITY_LOG_LEVEL:DEBUG}
+    uz.javachi.autonline: ${A_LOG_LEVEL:DEBUG}
+    org.springframework.security: ${A_SECURITY_LOG_LEVEL:DEBUG}
     uz.javachi.autonline.config.security: DEBUG
