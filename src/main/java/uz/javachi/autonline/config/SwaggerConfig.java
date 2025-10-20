@@ -38,6 +38,9 @@ public class SwaggerConfig {
                                 .description("Production Server"),*/
                         new Server()
                                 .url("http://localhost:8080")
+                                .description("Test Server"),
+                        new Server()
+                                .url("http://167.71.28.250:8084/")
                                 .description("Development Server")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
