@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${A_DB_HOST:localhost}:${A_DB_PORT:5432}/${A_DB_NAME:autonline}
+    driver-class-name: org.postgresql.Driver
+    username: autonline_user
+    password: autonline123
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: ${A_HIBERNATE_DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+# JWT Configuration
+app:
+  jwt:
+    secret: ${A_JWT_SECRET:feD65K4oszTmBRZIpO94QVgrqFaByXh72z7cENrVRDIqama4jKsdBAjA14StehYaH0D35Hen5skXYPmhNfY62ZDM1Klo24Jp1pZmTBH6qxsLfFYOSiScncyj9r8iiprRpIHFSVSSbF14CmVxJFdYHHXxDZQQrIA77PwKYFV0NoErQLIo0CZoISDFd7NxecmWmHlqRWSW}
+    expiration: ${A_JWT_EXPIRATION:8640000} # 24 hours in milliseconds
+
+# Logging Configuration
+logging:
+  level:
+    uz.javachi.autonline: ${A_LOG_LEVEL:DEBUG}
+    org.springframework.security: ${A_SECURITY_LOG_LEVEL:DEBUG}
+    uz.javachi.autonline.config.security: DEBUG
+server:
+  port: ${A_SERVER_PORT:8080}
