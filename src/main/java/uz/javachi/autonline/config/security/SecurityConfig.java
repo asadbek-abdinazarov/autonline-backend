@@ -56,7 +56,7 @@ public class SecurityConfig {
                                 .requestMatchers("/h2-console/**").hasRole("ADMIN")
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/lesson/**", "/api/v1/payment-history/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers("/api/v1/lesson/**", "/api/v1/payment-history/**", "/api/v1/lesson-history/**").hasAnyRole("USER", "ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .headers(headers -> headers

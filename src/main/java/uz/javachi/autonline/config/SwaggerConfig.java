@@ -85,4 +85,12 @@ public class SwaggerConfig {
                 .pathsToMatch("/api/v1/news/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi lessonHistoryGroupAPI() {
+        return GroupedOpenApi.builder()
+                .group("Lesson History")
+                .pathsToMatch("/api/v1/lesson-history/**")
+                .build();
+    }
 }
