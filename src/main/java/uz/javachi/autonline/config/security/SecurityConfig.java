@@ -1,7 +1,6 @@
 package uz.javachi.autonline.config.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,8 +31,6 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthEntryPointJwt unauthorizedHandler;
 
-    @Value("${accepted.origin}")
-    private String acceptedOrigin;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -52,14 +49,14 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/v1/auth/**").permitAll()
+                        auth.requestMatchers("/api/v1/auth/login").permitAll()
                                 .requestMatchers("/api/v1/public/**").permitAll()
                                 .requestMatchers("/api/v1/news/**").permitAll()
+                                .requestMatchers("/actuator/**").permitAll()
                                 .requestMatchers("/h2-console/**").hasRole("ADMIN")
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/lesson/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/api/v1/payment-history/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/lesson/**", "/api/v1/payment-history/**").hasAnyRole("USER", "ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .headers(headers -> headers
@@ -79,7 +76,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:8080", acceptedOrigin + ":3001", acceptedOrigin + ":8080"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);

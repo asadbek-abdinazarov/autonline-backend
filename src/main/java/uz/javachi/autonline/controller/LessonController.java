@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uz.javachi.autonline.customAnnotations.CountView;
 import uz.javachi.autonline.dto.res.LessonResponseDTO;
 import uz.javachi.autonline.projection.LessonAnonsProjection;
 import uz.javachi.autonline.service.LessonService;
@@ -28,6 +29,7 @@ public class LessonController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @CountView
     public ResponseEntity<LessonResponseDTO> getByLessonId(@PathVariable(name = "id") Integer lessonId) {
         return lessonService.getByLessonId(lessonId);
     }

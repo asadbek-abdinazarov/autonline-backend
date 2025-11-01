@@ -2,9 +2,11 @@ package uz.javachi.autonline.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uz.javachi.autonline.customAnnotations.Loggable;
 import uz.javachi.autonline.dto.request.LoginRequest;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
@@ -23,11 +25,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
+    @Loggable
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authService.authenticateUser(loginRequest));
     }
 
     @PostMapping("/register")
+    @Loggable
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         return ResponseEntity.ok(Map.of("message", authService.registerUser(registerRequest)));
     }

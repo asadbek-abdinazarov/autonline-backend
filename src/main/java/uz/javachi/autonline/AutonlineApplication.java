@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import uz.javachi.autonline.dto.LessonResponse;
 import uz.javachi.autonline.dto.QuestionData;
 import uz.javachi.autonline.model.*;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @Slf4j
 @SpringBootApplication
+@EnableAspectJAutoProxy
 public class AutonlineApplication {
 
     public static void main(String[] args) {

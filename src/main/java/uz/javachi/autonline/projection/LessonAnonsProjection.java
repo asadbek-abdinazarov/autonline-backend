@@ -6,4 +6,5 @@ public interface LessonAnonsProjection {
     String getLessonDescription();
     String getLessonIcon();
     Long getLessonQuestionCount();
+    Long getLessonViewsCount();
 }

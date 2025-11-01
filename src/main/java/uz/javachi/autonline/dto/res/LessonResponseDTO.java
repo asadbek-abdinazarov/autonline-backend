@@ -15,13 +15,16 @@ public class LessonResponseDTO {
     private String lessonDescription;
     private String lessonIcon;
     private Long lessonQuestionCount;
+    private Long lessonViewsCount;
     private List<QuestionResponseDTO> questions;
 
-    public LessonResponseDTO(Integer lessonId, String lessonName, String lessonDescription, String lessonIcon, Long lessonQuestionCount) {
+    public LessonResponseDTO(Integer lessonId, String lessonName, String lessonDescription, String lessonIcon,
+                             Long lessonQuestionCount, Long lessonViewsCount) {
         this.lessonId = lessonId;
         this.lessonName = lessonName;
         this.lessonDescription = lessonDescription;
         this.lessonIcon = lessonIcon;
         this.lessonQuestionCount = lessonQuestionCount;
+        this.lessonViewsCount = lessonViewsCount;
     }
 }

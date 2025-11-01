@@ -3,6 +3,7 @@ package uz.javachi.autonline.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.dto.res.*;
 import uz.javachi.autonline.model.*;
@@ -11,6 +12,7 @@ import uz.javachi.autonline.repository.LessonRepository;
 import uz.javachi.autonline.repository.QuestionRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -126,5 +128,12 @@ public class LessonService {
 
     public List<LessonAnonsProjection> getAllLessonsAnons() {
         return lessonRepository.findAllLessonsAnons();
+    }
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordView(Integer lessonId, Optional<Integer> currentUserId) {
+        lessonRepository.incrementViews(lessonId);
+        if (currentUserId.isEmpty()) {
+            lessonRepository.incrementUnique(lessonId);
+        }
     }
 }

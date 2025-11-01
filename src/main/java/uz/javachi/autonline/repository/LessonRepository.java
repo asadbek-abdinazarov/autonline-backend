@@ -1,6 +1,7 @@
 package uz.javachi.autonline.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -29,9 +30,17 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
 
 
     @Query("SELECT new uz.javachi.autonline.dto.res.LessonResponseDTO(" +
-            "l.lessonId, l.lessonName, l.lessonDescription, l.lessonIcon, COUNT(q))" +
+            "l.lessonId, l.lessonName, l.lessonDescription, l.lessonIcon, COUNT(q), l.viewsCount)" +
             "FROM Lesson l " +
             "LEFT JOIN l.questions q " +
             "GROUP BY l.lessonId, l.lessonName, l.lessonDescription, l.lessonIcon order by count(q)")
     List<LessonAnonsProjection> findAllLessonsAnons();
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(nativeQuery = true, value = "UPDATE lesson SET views_count = views_count + 1 WHERE lesson_id = :lessonId")
+    void incrementViews(@Param("lessonId") Integer lessonId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE lesson SET unique_count = unique_count + 1 WHERE lesson_id = :topicId")
+    void incrementUnique(@Param("lessonId") Integer lessonId);
 }

@@ -15,6 +15,7 @@ import uz.javachi.autonline.config.security.JwtUtils;
 import uz.javachi.autonline.dto.request.LoginRequest;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
+import uz.javachi.autonline.exceptions.CustomRoleNotFoundException;
 import uz.javachi.autonline.exceptions.UserIsNotActiveException;
 import uz.javachi.autonline.model.Permission;
 import uz.javachi.autonline.model.Role;
@@ -103,19 +104,11 @@ public class AuthService {
                 .roles(new HashSet<>())
                 .build();
 
-        Set<String> strRoles = registerRequest.getRoles();
         Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null || strRoles.isEmpty()) {
-            Role userRole = roleRepository.findActiveByName("USER")
-                    .orElseThrow(() -> new RuntimeException("Error: USER role is not found."));
-            roles.add(userRole);
+        if (roleRepository.findByName("USER").isPresent()) {
+            roles.add(roleRepository.findByName("USER").get());
         } else {
-            strRoles.forEach(role -> {
-                Role foundRole = roleRepository.findActiveByName(role)
-                        .orElseThrow(() -> new RuntimeException("Error: Role " + role + " is not found."));
-                roles.add(foundRole);
-            });
+            throw new CustomRoleNotFoundException("Role not found!");
         }
 
         user.setRoles(roles);
