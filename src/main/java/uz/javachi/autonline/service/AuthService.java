@@ -17,19 +17,14 @@ import uz.javachi.autonline.config.security.JwtUtils;
 import uz.javachi.autonline.dto.request.LoginRequest;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
-import uz.javachi.autonline.exceptions.CustomRoleNotFoundException;
-import uz.javachi.autonline.exceptions.UserIsNotActiveException;
-import uz.javachi.autonline.model.Permission;
-import uz.javachi.autonline.model.Role;
-import uz.javachi.autonline.model.Subscription;
-import uz.javachi.autonline.model.User;
-import uz.javachi.autonline.repository.PermissionRepository;
-import uz.javachi.autonline.repository.RoleRepository;
-import uz.javachi.autonline.repository.UserRepository;
+import uz.javachi.autonline.exceptions.*;
+import uz.javachi.autonline.model.*;
+import uz.javachi.autonline.repository.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static uz.javachi.autonline.DefaultValues.DEFAULT_ROLE;
+import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
 
 @Service
 @RequiredArgsConstructor
@@ -42,26 +37,34 @@ public class AuthService {
     private final PermissionRepository permissionRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final SubscriptionService subscriptionService;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
+
         User user = userRepository.findByUsernameAndSubscription(loginRequest.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("%s nomda foydalanuvchi topilmadi".formatted(loginRequest.getUsername())));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        String.format("%s nomda foydalanuvchi topilmadi", loginRequest.getUsername())
+                ));
 
         if (user.isAccountActive()) {
-            throw new UserIsNotActiveException("Foydalanuvchi hisobingiz bloklangan. Iltimos, administrator bilan bog'laning.");
-        }
-        Authentication authentication;
-        try {
-            authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-        } catch (BadCredentialsException ex) {
-            throw new BadCredentialsException("Foydalanuvchi nomi yoki Parol noto'g'ri", ex);
+            throw new UserIsNotActiveException(
+                    "Foydalanuvchi hisobingiz bloklangan. Iltimos, administrator bilan bog'laning."
+            );
         }
 
+        Authentication authentication = authenticateCredentials(loginRequest);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateToken((org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal());
 
+        String jwtToken = jwtUtils.generateToken(
+                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()
+        );
+
+        Subscription subscription = user.getSubscription();
+        List<@NotBlank @Size(min = 2, max = 100) String> subscriptionPermissions =
+                getActivePermissionNames(subscription);
+
+        // ⚠️ Kommentdagi kodga tegilmadi:
         // Roles and permissions are now handled in JWT token generation
         // These variables are kept for future use if needed
 //        @SuppressWarnings("unused")
@@ -79,58 +82,55 @@ public class AuthService {
                 .distinct()
                 .toList();*/
 
-        Subscription subscription = user.getSubscription();
-
-        List<@NotBlank(message = "Permission name is required")
-                @Size(min = 2, max = 100, message = "Permission name must be between 2 and 100 characters")
-                String> subscription_permissions = subscription.getPermissions().stream()
-                .filter(permission -> permission.getIsActive() && !permission.isDeleted())
-                .map(Permission::getName)
-                .toList();
-
+        buildJwtResponse(jwtToken, user, subscription, subscriptionPermissions);
 
         return JwtResponse.builder()
-                .token(jwt)
+                .token(jwtToken)
                 .type("Bearer")
                 .id(user.getUserId())
                 .username(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
                 .subscription(subscription.getName())
-                .permissions(subscription_permissions)
+                .permissions(subscriptionPermissions)
                 .isActive(user.getIsActive())
                 .build();
     }
 
+    private Authentication authenticateCredentials(LoginRequest loginRequest) {
+        try {
+            return authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(), loginRequest.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException ex) {
+            throw new BadCredentialsException("Foydalanuvchi nomi yoki parol noto‘g‘ri", ex);
+        }
+    }
+
     @Transactional
-    public String registerUser(RegisterRequest registerRequest) {
-        if (userRepository.existsByUsernameAndNotDeleted(registerRequest.getUsername())) {
-            throw new RuntimeException("Bu nom bilan foydalanuvchi allaqachon mavjud!");
-        }
+    public JwtResponse registerUser(RegisterRequest registerRequest) {
 
-        if (userRepository.existsByPhoneNumberAndNotDeleted(registerRequest.getPhoneNumber())) {
-            throw new RuntimeException("Bu telefon raqami allaqachon ro'yxatdan o'tgan!");
-        }
+        validateUniqueUser(registerRequest);
 
-        User user = User.builder()
-                .username(registerRequest.getUsername())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .phoneNumber(registerRequest.getPhoneNumber())
-                .isActive(true)
-                .roles(new HashSet<>())
-                .build();
+        Subscription freeSubscription = getSubscriptionOrThrow();
+        Role userRole = getRoleOrThrow();
 
-        Set<Role> roles = new HashSet<>();
-        if (roleRepository.findByName("USER").isPresent()) {
-            roles.add(roleRepository.findByName("USER").get());
-        } else {
-            throw new CustomRoleNotFoundException("Role not found!");
-        }
+        User newUser = buildNewUser(registerRequest, freeSubscription, userRole);
+        userRepository.save(newUser);
 
-        user.setRoles(roles);
-        userRepository.save(user);
+        List<String> activePermissions = getActivePermissionNames(freeSubscription);
 
-        log.info("User registered successfully: {}", user.getUsername());
-        return "User registered successfully!";
+        Authentication authentication = authenticateCredentials(new LoginRequest(registerRequest.getUsername(), registerRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String jwtToken = jwtUtils.generateToken(
+                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()
+        );
+
+        log.info("✅ Foydalanuvchi muvaffaqiyatli ro‘yxatdan o‘tdi: {}", newUser.getUsername());
+
+        return buildJwtResponse(jwtToken, newUser, freeSubscription, activePermissions);
     }
 
     @Transactional
@@ -145,38 +145,93 @@ public class AuthService {
         createRoleIfNotExists("USER", "Default user role", List.of("READ_LESSONS"));
         createRoleIfNotExists("ADMIN", "Administrator role", List.of(
                 "READ_LESSONS", "WRITE_LESSONS", "DELETE_LESSONS",
-                "MANAGE_USERS", "VIEW_PAYMENTS", "MANAGE_PAYMENTS"));
+                "MANAGE_USERS", "VIEW_PAYMENTS", "MANAGE_PAYMENTS"
+        ));
+    }
+
+    private void validateUniqueUser(RegisterRequest registerRequest) {
+        if (userRepository.existsByUsernameAndNotDeleted(registerRequest.getUsername())) {
+            throw new UserAlreadyExistsException("Bu nom bilan foydalanuvchi allaqachon mavjud!");
+        }
+
+        if (userRepository.existsByPhoneNumberAndNotDeleted(registerRequest.getPhoneNumber())) {
+            throw new UserAlreadyExistsException("Bu telefon raqami allaqachon ro‘yxatdan o‘tgan!");
+        }
+    }
+
+    private Subscription getSubscriptionOrThrow() {
+        return subscriptionService.findByName(DEFAULT_SUBSCRIPTION)
+                .orElseThrow(() -> new ResourceNotFoundException(STR."Obuna topilmadi: \{DEFAULT_SUBSCRIPTION}"));
+    }
+
+    private Role getRoleOrThrow() {
+        return roleRepository.findByName(DEFAULT_ROLE)
+                .orElseThrow(() -> new CustomRoleNotFoundException(STR."Rol topilmadi: \{DEFAULT_ROLE}"));
+    }
+
+    private User buildNewUser(RegisterRequest request, Subscription subscription, Role role) {
+        return User.builder()
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .phoneNumber(request.getPhoneNumber())
+                .isActive(true)
+                .subscription(subscription)
+                .paymentHistory(new ArrayList<>()) // Mutable list
+                .roles(Set.of(role))
+                .build();
+    }
+
+    private List<String> getActivePermissionNames(Subscription subscription) {
+        return subscription.getPermissions().stream()
+                .filter(permission -> Boolean.TRUE.equals(permission.getIsActive()) && !permission.isDeleted())
+                .map(Permission::getName)
+                .toList();
+    }
+
+    private JwtResponse buildJwtResponse(String token, User user, Subscription subscription, List<String> permissions) {
+        return JwtResponse.builder()
+                .id(user.getUserId())
+                .token(token)
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .isActive(user.getIsActive())
+                .subscription(subscription.getName())
+                .permissions(permissions)
+                .build();
     }
 
     private void createPermissionIfNotExists(String name, String description) {
-        if (!permissionRepository.existsByName(name)) {
-            Permission permission = Permission.builder()
-                    .name(name)
-                    .description(description)
-                    .isActive(true)
-                    .build();
-            permissionRepository.save(permission);
-            log.info("Created permission: {}", name);
+        if (permissionRepository.existsByName(name)) {
+            return;
         }
+        Permission permission = Permission.builder()
+                .name(name)
+                .description(description)
+                .isActive(true)
+                .build();
+        permissionRepository.save(permission);
+        log.info("🟢 Created permission: {}", name);
     }
 
     private void createRoleIfNotExists(String name, String description, List<String> permissionNames) {
-        if (!roleRepository.existsByName(name)) {
-            Role role = Role.builder()
-                    .name(name)
-                    .description(description)
-                    .isActive(true)
-                    .permissions(new HashSet<>())
-                    .build();
-
-            permissionNames.forEach(permissionName -> {
-                Permission permission = permissionRepository.findActiveByName(permissionName)
-                        .orElseThrow(() -> new RuntimeException("Permission not found: " + permissionName));
-                role.addPermission(permission);
-            });
-
-            roleRepository.save(role);
-            log.info("Created role: {} with permissions: {}", name, permissionNames);
+        if (roleRepository.existsByName(name)) {
+            return;
         }
+
+        Role role = Role.builder()
+                .name(name)
+                .description(description)
+                .isActive(true)
+                .permissions(new HashSet<>())
+                .build();
+
+        permissionNames.forEach(permissionName -> {
+            Permission permission = permissionRepository.findActiveByName(permissionName)
+                    .orElseThrow(() -> new ResourceNotFoundException(STR."Permission not found: \{permissionName}"));
+            role.addPermission(permission);
+        });
+
+        roleRepository.save(role);
+        log.info("🟢 Created role: {} with permissions: {}", name, permissionNames);
     }
 }

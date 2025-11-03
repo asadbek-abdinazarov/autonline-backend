@@ -54,13 +54,13 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/v1/auth/login").permitAll()
+                        auth.requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/api/v1/public/**").permitAll()
+                                .requestMatchers("/error").permitAll()
                                 .requestMatchers("/api/v1/news/**").permitAll()
                                 .requestMatchers("/actuator/**").permitAll()
                                 .requestMatchers("/h2-console/**").hasRole("ADMIN")
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/lesson/**",
                                         "/api/v1/payment-history/**",
                                         "/api/v1/lesson-history/**").hasAnyRole("USER", "ADMIN")

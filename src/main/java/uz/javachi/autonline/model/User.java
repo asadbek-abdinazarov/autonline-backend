@@ -63,7 +63,7 @@ public class User {
     )
     private Set<Role> roles;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_subscriptions",
             joinColumns = @JoinColumn(name = "user_id"),

@@ -33,7 +33,7 @@ public class AuthController {
     @PostMapping("/register")
     @Loggable
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
-        return ResponseEntity.ok(Map.of("message", authService.registerUser(registerRequest)));
+        return ResponseEntity.ok(authService.registerUser(registerRequest));
     }
 }
 
