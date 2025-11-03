@@ -1,25 +1,11 @@
 package uz.javachi.autonline;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import uz.javachi.autonline.dto.LessonResponse;
-import uz.javachi.autonline.dto.QuestionData;
-import uz.javachi.autonline.model.*;
-import uz.javachi.autonline.repository.LessonRepository;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @SpringBootApplication
@@ -30,8 +16,6 @@ public class AutonlineApplication {
         SpringApplication.run(AutonlineApplication.class, args);
     }
 
-    @Autowired
-    private LessonRepository lessonRepository;
 
    /* @PostConstruct
     public void init() throws URISyntaxException {
@@ -109,10 +93,14 @@ public class AutonlineApplication {
 
     }*/
 
+    @PostConstruct
+    public void init() {
+        log.info("✅Dastur ishga tushirildi...");
+    }
 
     @PreDestroy
     public void destroy() {
-        log.info("BOT ISHLASHDAN TO'XTADI");
+        log.info("Dastur ishlashdan to'xtatildi...");
     }
 
 }

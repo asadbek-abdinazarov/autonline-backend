@@ -37,15 +37,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
         log.debug("Found user by ID: {} -> Username: {}", user.getUserId(), user.getUsername());
         return CustomUserDetails.fromUser(user);
-        /*return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .authorities(getAuthorities(user.getRoles()))
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(!user.getIsActive())
-                .build();*/
     }
 
     public UserDetails loadUserById(Integer id) throws UsernameNotFoundException {

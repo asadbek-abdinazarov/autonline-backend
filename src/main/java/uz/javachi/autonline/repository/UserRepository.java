@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import uz.javachi.autonline.model.Subscription;
 import uz.javachi.autonline.model.User;
 
 import java.util.List;
@@ -14,6 +15,16 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username")
     Optional<User> findByUsername(@Param("username") String username);
+
+    @Query(value = """
+                select u
+                from User u
+                left join fetch u.subscription s
+                left join fetch s.permissions p
+                where u.username = :username
+            """)
+    Optional<User> findByUsernameAndSubscription(@Param("username") String username);
+
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.phoneNumber = :phoneNumber")
     Optional<User> findByPhoneNumber(@Param("phoneNumber") String phoneNumber);

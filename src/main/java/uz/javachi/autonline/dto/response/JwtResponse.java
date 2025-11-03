@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.javachi.autonline.model.Subscription;
 
 import java.util.List;
 
@@ -21,5 +22,7 @@ public class JwtResponse {
     private String phoneNumber;
 /*    private List<String> roles;
     private List<String> permissions;*/
+    private String subscription;
+    private List<String> permissions;
     private Boolean isActive;
 }

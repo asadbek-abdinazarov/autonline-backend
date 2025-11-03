@@ -1,5 +1,7 @@
 package uz.javachi.autonline.service;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +21,7 @@ import uz.javachi.autonline.exceptions.CustomRoleNotFoundException;
 import uz.javachi.autonline.exceptions.UserIsNotActiveException;
 import uz.javachi.autonline.model.Permission;
 import uz.javachi.autonline.model.Role;
+import uz.javachi.autonline.model.Subscription;
 import uz.javachi.autonline.model.User;
 import uz.javachi.autonline.repository.PermissionRepository;
 import uz.javachi.autonline.repository.RoleRepository;
@@ -42,7 +45,7 @@ public class AuthService {
 
     @Transactional
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
-        User user = userRepository.findByUsername(loginRequest.getUsername())
+        User user = userRepository.findByUsernameAndSubscription(loginRequest.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("%s nomda foydalanuvchi topilmadi".formatted(loginRequest.getUsername())));
 
         if (user.isAccountActive()) {
@@ -61,20 +64,30 @@ public class AuthService {
 
         // Roles and permissions are now handled in JWT token generation
         // These variables are kept for future use if needed
-        @SuppressWarnings("unused")
-        List<String> roles = user.getRoles().stream()
+//        @SuppressWarnings("unused")
+        /*List<String> roles = user.getRoles().stream()
                 .filter(role -> role.getIsActive() && !role.isDeleted())
                 .map(Role::getName)
-                .toList();
+                .toList();*/
 
-        @SuppressWarnings("unused")
-        List<String> permissions = user.getRoles().stream()
+//        @SuppressWarnings("unused")
+       /* List<String> permissions = user.getRoles().stream()
                 .filter(role -> role.getIsActive() && !role.isDeleted())
                 .flatMap(role -> role.getPermissions().stream())
                 .filter(permission -> permission.getIsActive() && !permission.isDeleted())
                 .map(Permission::getName)
                 .distinct()
+                .toList();*/
+
+        Subscription subscription = user.getSubscription();
+
+        List<@NotBlank(message = "Permission name is required")
+                @Size(min = 2, max = 100, message = "Permission name must be between 2 and 100 characters")
+                String> subscription_permissions = subscription.getPermissions().stream()
+                .filter(permission -> permission.getIsActive() && !permission.isDeleted())
+                .map(Permission::getName)
                 .toList();
+
 
         return JwtResponse.builder()
                 .token(jwt)
@@ -82,6 +95,8 @@ public class AuthService {
                 .id(user.getUserId())
                 .username(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
+                .subscription(subscription.getName())
+                .permissions(subscription_permissions)
                 .isActive(user.getIsActive())
                 .build();
     }
