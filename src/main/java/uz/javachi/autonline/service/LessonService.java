@@ -136,4 +136,73 @@ public class LessonService {
             lessonRepository.incrementUnique(lessonId);
         }
     }
+
+    public ResponseEntity<List<LessonResponseDTO>> getRandomQuiz() {
+        // 20 ta random savollarni IDlarini olish
+        List<Integer> questionIds = questionRepository.findRandomQuestionIds();
+        if (questionIds.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        // Savollarni to'liq ma'lumotlari bilan olish
+        List<Question> questionsWithRelations = questionRepository.findQuestionsByIdsWithAllRelations(questionIds);
+
+        // Lesson bo'yicha guruhlash
+        List<LessonResponseDTO> result = questionsWithRelations.stream()
+                .collect(Collectors.groupingBy(Question::getLesson))
+                .entrySet().stream()
+                .map(entry -> {
+                    Lesson lesson = entry.getKey();
+                    List<Question> lessonQuestions = entry.getValue();
+
+                    LessonResponseDTO lessonResponseDTO = new LessonResponseDTO();
+                    lessonResponseDTO.setLessonId(lesson.getLessonId());
+                    lessonResponseDTO.setLessonName(lesson.getLessonName());
+                    lessonResponseDTO.setLessonDescription(lesson.getLessonDescription());
+                    lessonResponseDTO.setLessonIcon(lesson.getLessonIcon());
+                    lessonResponseDTO.setLessonQuestionCount((long) lessonQuestions.size());
+
+                    List<QuestionResponseDTO> questionResponses = lessonQuestions.stream().map(q -> {
+                        QuestionResponseDTO qr = new QuestionResponseDTO();
+                        qr.setQuestionId(q.getQuestionId());
+                        qr.setPhoto(q.getPhoto());
+
+                        QuestionText qt = q.getQuestionText();
+                        if (qt != null) {
+                            QuestionTextResponseDTO qtr = new QuestionTextResponseDTO();
+                            qtr.setOz(qt.getOz());
+                            qtr.setUz(qt.getUz());
+                            qtr.setRu(qt.getRu());
+                            qr.setQuestionText(qtr);
+                        }
+
+                        Answers answers = q.getAnswers();
+                        if (answers != null) {
+                            AnswerResponseDTO ar = new AnswerResponseDTO();
+                            ar.setAnswerId(answers.getAnswerId());
+                            ar.setStatus(answers.getStatus());
+                            ar.setQuestionId(q.getQuestionId());
+
+                            AnswerText at = answers.getAnswerText();
+                            if (at != null) {
+                                AnswerTextResponseDTO atr = new AnswerTextResponseDTO();
+                                atr.setOz(at.getOz());
+                                atr.setUz(at.getUz());
+                                atr.setRu(at.getRu());
+                                ar.setAnswerText(atr);
+                            }
+
+                            qr.setAnswers(ar);
+                        }
+
+                        return qr;
+                    }).collect(Collectors.toList());
+
+                    lessonResponseDTO.setQuestions(questionResponses);
+                    return lessonResponseDTO;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
 }

@@ -93,4 +93,12 @@ public class SwaggerConfig {
                 .pathsToMatch("/api/v1/lesson-history/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi randomQuizGroupAPI() {
+        return GroupedOpenApi.builder()
+                .group("Random Quiz")
+                .pathsToMatch("/api/v1/random-quiz/**")
+                .build();
+    }
 }
