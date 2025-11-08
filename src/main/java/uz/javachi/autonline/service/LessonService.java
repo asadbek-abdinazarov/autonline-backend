@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uz.javachi.autonline.dto.res.*;
+import uz.javachi.autonline.dto.response.*;
 import uz.javachi.autonline.model.*;
 import uz.javachi.autonline.projection.LessonAnonsProjection;
 import uz.javachi.autonline.repository.LessonRepository;

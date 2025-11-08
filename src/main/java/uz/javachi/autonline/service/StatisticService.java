@@ -2,7 +2,7 @@ package uz.javachi.autonline.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uz.javachi.autonline.dto.res.StatisticResponseDTO;
+import uz.javachi.autonline.dto.response.StatisticResponseDTO;
 import uz.javachi.autonline.repository.LessonHistoryRepository;
 import uz.javachi.autonline.repository.PaymentHistoryRepository;
 import uz.javachi.autonline.repository.QuestionRepository;

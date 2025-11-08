@@ -1,0 +1,67 @@
+package uz.javachi.autonline.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import uz.javachi.autonline.dto.response.UserResponseDTO;
+import uz.javachi.autonline.service.AdminService;
+
+@RestController
+@RequestMapping("/api/v1/admin")
+@RequiredArgsConstructor
+public class AdminController {
+
+    private final AdminService adminService;
+
+    @GetMapping("/get-all-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(adminService.getAllUsers(page, size));
+    }
+
+
+    @PostMapping("/edit-user-subscription")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> editUserSubscription(
+            @RequestParam Integer userId,
+            @RequestParam Integer subscriptionId
+    ) {
+        return ResponseEntity.ok(adminService.editUserSubscription(userId, subscriptionId));
+    }
+
+    @PostMapping("/add-role-to-user")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addRoleToUser(
+            @RequestParam Integer userId,
+            @RequestParam Integer roleId
+    ) {
+        return ResponseEntity.ok(adminService.addRoleToUser(userId, roleId));
+    }
+
+    @PostMapping("/delete-role-from-user")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteRoleFromUser(
+            @RequestParam Integer userId,
+            @RequestParam Integer roleId
+    ) {
+        return ResponseEntity.ok(adminService.deleteRoleFromUser(userId, roleId));
+    }
+
+    @GetMapping("/get-all-roles")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllRoles() {
+        return ResponseEntity.ok(adminService.getAllRoles());
+    }
+
+    @GetMapping("/get-all-subscriptions")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllSubscriptions() {
+        return ResponseEntity.ok(adminService.getAllSubscriptions());
+    }
+
+}

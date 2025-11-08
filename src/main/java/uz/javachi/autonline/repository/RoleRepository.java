@@ -21,4 +21,6 @@ public interface RoleRepository extends JpaRepository<Role, Integer> {
     List<Role> findAllActive();
 
     boolean existsByName(String name);
+
+    Optional<Role> findRoleByRoleIdAndDeletedAtIsNull(Integer roleId);
 }

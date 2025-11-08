@@ -15,10 +15,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({UserIsNotActiveException.class, RuntimeException.class})
-    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+    @ExceptionHandler({UserIsNotActiveException.class})
+    public ResponseEntity<Map<String, String>> userIsNotActiveException(RuntimeException ex) {
         return ResponseEntity.internalServerError()
                 .body(Map.of("error", "Authentication failed", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler({RuntimeException.class})
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Failed", "message", ex.getMessage()));
     }
 
     @ExceptionHandler(CustomRoleNotFoundException.class)

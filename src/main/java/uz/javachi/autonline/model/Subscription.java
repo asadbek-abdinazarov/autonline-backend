@@ -6,10 +6,11 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import uz.javachi.autonline.dto.response.PermissionResponseDTO;
+import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -74,5 +75,19 @@ public class Subscription {
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
         this.isActive = false;
+    }
+
+    public static SubscriptionResponseDTO subscriptionToDto(Subscription subscription) {
+        return SubscriptionResponseDTO.builder()
+                .subscriptionId(subscription.getSubscriptionId())
+                .name(subscription.getName())
+                .permissions(subscription.getPermissions()
+                        .stream().map(Permission::permissionToDto)
+                        .collect(Collectors.toSet()))
+                .isActive(subscription.getIsActive())
+                .createdAt(subscription.getCreatedAt())
+                .updatedAt(subscription.getUpdatedAt())
+                .deletedAt(subscription.getDeletedAt())
+                .build();
     }
 }

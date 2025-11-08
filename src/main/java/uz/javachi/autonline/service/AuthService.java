@@ -29,6 +29,7 @@ import uz.javachi.autonline.repository.PermissionRepository;
 import uz.javachi.autonline.repository.RoleRepository;
 import uz.javachi.autonline.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 
@@ -101,6 +102,7 @@ public class AuthService {
         Role userRole = getRoleOrThrow();
 
         User newUser = buildNewUser(registerRequest, freeSubscription, userRole, passwordEncoder);
+        newUser.setNextPaymentDate(LocalDateTime.now().plusDays(7));
         userRepository.save(newUser);
 
         List<String> activePermissions = getActivePermissionNames(freeSubscription);

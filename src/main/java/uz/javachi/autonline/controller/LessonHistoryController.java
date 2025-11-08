@@ -3,7 +3,7 @@ package uz.javachi.autonline.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uz.javachi.autonline.dto.res.LessonHistoryDTO;
+import uz.javachi.autonline.dto.response.LessonHistoryDTO;
 import uz.javachi.autonline.service.LessonHistoryService;
 
 @RestController

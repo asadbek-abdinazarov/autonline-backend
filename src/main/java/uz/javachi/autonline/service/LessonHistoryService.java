@@ -3,7 +3,7 @@ package uz.javachi.autonline.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import uz.javachi.autonline.dto.res.LessonHistoryDTO;
+import uz.javachi.autonline.dto.response.LessonHistoryDTO;
 import uz.javachi.autonline.model.LessonHistory;
 import uz.javachi.autonline.projection.LessonHistoryProjection;
 import uz.javachi.autonline.repository.LessonHistoryRepository;

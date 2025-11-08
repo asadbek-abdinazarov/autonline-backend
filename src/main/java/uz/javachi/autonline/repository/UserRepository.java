@@ -1,6 +1,10 @@
 package uz.javachi.autonline.repository;
 
+import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -52,4 +56,18 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByIdWithRoles(@Param("userId") Integer userId);
 
     Long countByIsActive(Boolean isActive);
+
+    @Query("SELECT u FROM User u WHERE u.userId <> :userId")
+    Page<User> findAllWithoutHimSelf(@Param("userId") Integer userId, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true, value = """
+            UPDATE user_subscriptions
+            SET subscription_id = :subscriptionId
+            WHERE user_id = :userId
+            """)
+    int updateUserSubscription(@Param("userId") Integer userId,
+                               @Param("subscriptionId") Integer subscriptionId);
+
 }

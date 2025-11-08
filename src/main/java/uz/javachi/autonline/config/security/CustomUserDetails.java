@@ -53,7 +53,7 @@ public class CustomUserDetails implements UserDetails {
         if (roles != null) {
             for (Role role : roles) {
                 if (role.getIsActive() && !role.isDeleted()) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase()));
+                    authorities.add(new SimpleGrantedAuthority("ROLE_%s".formatted(role.getName().toUpperCase())));
                     if (role.getPermissions() != null) {
                         for (Permission permission : role.getPermissions()) {
                             if (permission.getIsActive() && !permission.isDeleted()) {

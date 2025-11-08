@@ -90,7 +90,10 @@ public class Role {
                 .deletedAt(role.getDeletedAt())
                 .name(role.getName())
                 .isActive(role.getIsActive())
-                .permissions(role.getPermissions().stream().map(Permission::permissionToDto).collect(Collectors.toSet()))
+                .permissions(
+                        role.getPermissions().stream()
+                                .map(Permission::permissionToDto)
+                                .collect(Collectors.toSet()))
                 .build();
     }
 }

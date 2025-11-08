@@ -29,7 +29,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
     Optional<Lesson> findLessonWithAllRelations(@Param("lessonId") Integer lesson);
 
 
-    @Query("SELECT new uz.javachi.autonline.dto.res.LessonResponseDTO(" +
+    @Query("SELECT new uz.javachi.autonline.dto.response.LessonResponseDTO(" +
             "l.lessonId, l.lessonName, l.lessonDescription, l.lessonIcon, COUNT(q), l.viewsCount)" +
             "FROM Lesson l " +
             "LEFT JOIN l.questions q " +
