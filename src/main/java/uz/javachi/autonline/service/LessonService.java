@@ -137,17 +137,19 @@ public class LessonService {
         }
     }
 
-    public ResponseEntity<List<LessonResponseDTO>> getRandomQuiz() {
-        // 20 ta random savollarni IDlarini olish
-        List<Integer> questionIds = questionRepository.findRandomQuestionIds();
+    public ResponseEntity<List<LessonResponseDTO>> getRandomQuiz(Integer interval) {
+
+        if (interval < 5 || interval > 100) {
+            throw new IllegalArgumentException("Interval must be between 5 and 100");
+        }
+
+        List<Integer> questionIds = questionRepository.findRandomQuestionIds(interval);
         if (questionIds.isEmpty()) {
             return ResponseEntity.ok(List.of());
         }
 
-        // Savollarni to'liq ma'lumotlari bilan olish
         List<Question> questionsWithRelations = questionRepository.findQuestionsByIdsWithAllRelations(questionIds);
 
-        // Lesson bo'yicha guruhlash
         List<LessonResponseDTO> result = questionsWithRelations.stream()
                 .collect(Collectors.groupingBy(Question::getLesson))
                 .entrySet().stream()

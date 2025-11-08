@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.javachi.autonline.customAnnotations.CountView;
-import uz.javachi.autonline.customAnnotations.Loggable;
 import uz.javachi.autonline.dto.res.LessonResponseDTO;
 import uz.javachi.autonline.projection.LessonAnonsProjection;
 import uz.javachi.autonline.service.LessonService;

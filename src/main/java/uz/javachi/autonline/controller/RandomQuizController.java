@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.javachi.autonline.dto.res.LessonResponseDTO;
 import uz.javachi.autonline.service.LessonService;
@@ -20,8 +21,8 @@ public class RandomQuizController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<List<LessonResponseDTO>> getRandomQuiz() {
-        return lessonService.getRandomQuiz();
+    public ResponseEntity<List<LessonResponseDTO>> getRandomQuiz(@RequestParam Integer interval) {
+        return lessonService.getRandomQuiz(interval);
     }
 }
 
