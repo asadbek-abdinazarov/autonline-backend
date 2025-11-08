@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.dto.response.RoleResponseDTO;
 import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
+import uz.javachi.autonline.dto.response.UpdateUserRequestDTO;
 import uz.javachi.autonline.dto.response.UserResponseDTO;
 import uz.javachi.autonline.model.Permission;
 import uz.javachi.autonline.model.Role;
@@ -110,7 +111,7 @@ public class AdminService {
         Role role = getRoleOrThrow(roleId);
         validateRoleActive(role);
 
-        if (role.getName().equals(DEFAULT_ROLE)){
+        if (role.getName().equals(DEFAULT_ROLE)) {
             throw new RuntimeException("%s role is by default role you cannot remove from user!".formatted(DEFAULT_ROLE));
         }
 
@@ -174,6 +175,7 @@ public class AdminService {
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
                 .isActive(user.getIsActive())
+                .nextPaymentDate(user.getNextPaymentDate())
                 .roles(user.getRoles().stream().map(Role::rolesToDto).toList())
                 .subscription(SubscriptionResponseDTO.builder()
                         .subscriptionId(subscription.getSubscriptionId())
@@ -191,5 +193,30 @@ public class AdminService {
                 .updatedAt(user.getUpdatedAt())
                 .deletedAt(user.getDeletedAt())
                 .build();
+    }
+
+    @Transactional
+    public String partialUpdateUser(Integer id, UpdateUserRequestDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: %s".formatted(id)));
+
+        if (dto.getFullName() != null && !dto.getFullName().isBlank()) {
+            user.setFullName(dto.getFullName());
+        }
+
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            user.setUsername(dto.getUsername());
+        }
+
+        if (dto.getPhoneNumber() != null && !dto.getPhoneNumber().isBlank()) {
+            user.setPhoneNumber(dto.getPhoneNumber());
+        }
+
+        if (dto.getIsActive() != null) {
+            user.setIsActive(dto.getIsActive());
+        }
+
+        userRepository.save(user);
+        return "User updated successfully.";
     }
 }

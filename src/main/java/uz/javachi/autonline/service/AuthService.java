@@ -1,9 +1,11 @@
 package uz.javachi.autonline.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,17 +23,16 @@ import uz.javachi.autonline.exceptions.CustomRoleNotFoundException;
 import uz.javachi.autonline.exceptions.ResourceNotFoundException;
 import uz.javachi.autonline.exceptions.UserAlreadyExistsException;
 import uz.javachi.autonline.exceptions.UserIsNotActiveException;
-import uz.javachi.autonline.model.Permission;
-import uz.javachi.autonline.model.Role;
-import uz.javachi.autonline.model.Subscription;
-import uz.javachi.autonline.model.User;
+import uz.javachi.autonline.model.*;
 import uz.javachi.autonline.repository.PermissionRepository;
 import uz.javachi.autonline.repository.RoleRepository;
 import uz.javachi.autonline.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import static uz.javachi.autonline.DefaultValues.DEFAULT_ROLE;
 import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
@@ -49,9 +50,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final SubscriptionService subscriptionService;
+    private final SessionService sessionService;
 
-    @Transactional(readOnly = true)
-    public JwtResponse authenticateUser(LoginRequest loginRequest) {
+    @Transactional
+    public JwtResponse authenticateUser(LoginRequest loginRequest, HttpServletRequest httpReq) {
 
         User user = userRepository.findByUsernameAndSubscription(loginRequest.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException(
@@ -64,11 +66,22 @@ public class AuthService {
             );
         }
 
+        List<UserSession> active = sessionService.listActiveSessions(user.getUserId());
+        int MAX = 1;
+        if (active.size() >= MAX) {
+            active.stream().min(Comparator.comparing(UserSession::getCreatedAt)).ifPresent(oldest -> sessionService.revokeSession(oldest.getSessionId()));
+        }
+
+        String ip = httpReq.getRemoteAddr();
+        String ua = httpReq.getHeader("User-Agent");
+        String sessionId = sessionService.createSession(user.getUserId(), ip, ua);
+
         Authentication authentication = authenticateCredentials(loginRequest);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwtToken = jwtUtils.generateToken(
-                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()
+                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal(),
+                Map.of("sessionId", sessionId)
         );
 
         Subscription subscription = user.getSubscription();
@@ -77,7 +90,7 @@ public class AuthService {
 
         List<String> roles = getRoles(user);
         List<String> rolePermissions = getPermissions(user);
-        return buildJwtResponse(jwtToken, user, subscription, subscriptionPermissions, rolePermissions, roles);
+        return buildJwtResponse(jwtToken, user, subscription, subscriptionPermissions, rolePermissions, roles, sessionId);
     }
 
 
@@ -94,7 +107,7 @@ public class AuthService {
     }
 
     @Transactional
-    public JwtResponse registerUser(RegisterRequest registerRequest) {
+    public JwtResponse registerUser(RegisterRequest registerRequest, HttpServletRequest httpReq) {
 
         validateUniqueUser(registerRequest);
 
@@ -107,11 +120,17 @@ public class AuthService {
 
         List<String> activePermissions = getActivePermissionNames(freeSubscription);
 
+        String ip = httpReq.getRemoteAddr();
+        String ua = httpReq.getHeader("User-Agent");
+        String sessionId = sessionService.createSession(newUser.getUserId(), ip, ua);
+
         Authentication authentication = authenticateCredentials(new LoginRequest(registerRequest.getUsername(), registerRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwtToken = jwtUtils.generateToken(
-                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()
+                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal(),
+                Map.of("sessionId", sessionId)
+
         );
 
         List<String> roles = getRoles(newUser);
@@ -119,7 +138,7 @@ public class AuthService {
 
         log.info("✅ Foydalanuvchi muvaffaqiyatli ro‘yxatdan o‘tdi: {}", newUser.getUsername());
 
-        return buildJwtResponse(jwtToken, newUser, freeSubscription, activePermissions, rolePermissions, roles);
+        return buildJwtResponse(jwtToken, newUser, freeSubscription, activePermissions, rolePermissions, roles, sessionId);
     }
 
     @Transactional
@@ -150,15 +169,13 @@ public class AuthService {
 
     private Subscription getSubscriptionOrThrow() {
         return subscriptionService.findByName(DEFAULT_SUBSCRIPTION)
-                .orElseThrow(() -> new ResourceNotFoundException(STR."Obuna topilmadi: \{DEFAULT_SUBSCRIPTION}"));
+                .orElseThrow(() -> new ResourceNotFoundException("Obuna topilmadi: %s".formatted(DEFAULT_SUBSCRIPTION)));
     }
 
     private Role getRoleOrThrow() {
         return roleRepository.findByName(DEFAULT_ROLE)
-                .orElseThrow(() -> new CustomRoleNotFoundException(STR."Rol topilmadi: \{DEFAULT_ROLE}"));
+                .orElseThrow(() -> new CustomRoleNotFoundException("Rol topilmadi: %s".formatted(DEFAULT_ROLE)));
     }
-
-
 
 
     private void createPermissionIfNotExists(String name, String description) {
@@ -188,11 +205,19 @@ public class AuthService {
 
         permissionNames.forEach(permissionName -> {
             Permission permission = permissionRepository.findActiveByName(permissionName)
-                    .orElseThrow(() -> new ResourceNotFoundException(STR."Permission not found: \{permissionName}"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Permission not found: %s".formatted(permissionName)));
             role.addPermission(permission);
         });
 
         roleRepository.save(role);
         log.info("🟢 Created role: {} with permissions: {}", name, permissionNames);
+    }
+
+    public String logout(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) return HttpStatus.BAD_REQUEST.name();
+        String token = authHeader.substring(7);
+        String sessionId = jwtUtils.extractSessionId(token);
+        sessionService.logoutSession(sessionId);
+        return HttpStatus.OK.name();
     }
 }

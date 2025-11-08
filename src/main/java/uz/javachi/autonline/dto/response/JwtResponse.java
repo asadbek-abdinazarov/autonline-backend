@@ -23,5 +23,6 @@ public class JwtResponse {
     private String subscription;
     private List<String> subscriptionPermissions;
     private List<String> rolePermissions;
+    private String sessionId;
     private Boolean isActive;
 }

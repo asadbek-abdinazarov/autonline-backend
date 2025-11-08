@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import uz.javachi.autonline.dto.response.UpdateUserRequestDTO;
 import uz.javachi.autonline.dto.response.UserResponseDTO;
 import uz.javachi.autonline.service.AdminService;
 
@@ -62,6 +63,14 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllSubscriptions() {
         return ResponseEntity.ok(adminService.getAllSubscriptions());
+    }
+
+    @PatchMapping("/particle-update-user/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> updateUserPartially(
+            @PathVariable("id") Integer id,
+            @RequestBody UpdateUserRequestDTO dto) {
+        return ResponseEntity.ok(adminService.partialUpdateUser(id, dto));
     }
 
 }

@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uz.javachi.autonline.service.SessionService;
 
 import java.io.IOException;
 
@@ -24,10 +25,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
+    private final SessionService sessionService;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, @Qualifier("customUserDetailsServiceIml") UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, @Qualifier("customUserDetailsServiceIml") UserDetailsService userDetailsService, SessionService sessionService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -48,6 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String username = jwtUtils.extractUsername(jwt);
                     log.debug("Extracted username from JWT: {}", username);
 
+                    String sessionId = jwtUtils.extractSessionId(jwt);
+
+                    if (!sessionService.isActive(sessionId)) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        return;
+                    }
+
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     log.debug("User details loaded: {}", userDetails.getUsername());
 
@@ -57,6 +67,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                        sessionService.updateLastActive(sessionId);
+
                         log.debug("Authentication set in SecurityContext for user: {}", username);
                     } else {
                         log.warn("User {} is disabled, authentication failed", username);
@@ -69,6 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             log.error("Cannot set user authentication: {}", e.getMessage(), e);
+            return;
         }
 
         filterChain.doFilter(request, response);

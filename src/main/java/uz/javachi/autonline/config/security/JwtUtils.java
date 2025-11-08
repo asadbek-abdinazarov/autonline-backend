@@ -31,6 +31,10 @@ public class JwtUtils {
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+    public String extractSessionId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("sessionId", String.class);
+    }
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
@@ -53,8 +57,7 @@ public class JwtUtils {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
+    public String generateToken(UserDetails userDetails, Map<String, Object> claims) {
         return createToken(claims, userDetails.getUsername());
     }
 
@@ -66,11 +69,13 @@ public class JwtUtils {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + jwtExpirationMs);
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .issuedAt(now)
+                .expiration(exp)
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -84,9 +89,9 @@ public class JwtUtils {
         try {
             log.debug("Validating JWT token with secret key length: {}", jwtSecret.length());
             Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token);
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
             log.debug("JWT token validation successful");
             return true;
         } catch (MalformedJwtException e) {

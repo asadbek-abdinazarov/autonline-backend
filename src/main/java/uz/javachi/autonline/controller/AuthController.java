@@ -1,5 +1,6 @@
 package uz.javachi.autonline.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +22,19 @@ public class AuthController {
 
     @PostMapping("/login")
     @Loggable
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-        return ResponseEntity.ok(authService.authenticateUser(loginRequest));
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest httpReq) {
+        return ResponseEntity.ok(authService.authenticateUser(loginRequest, httpReq));
     }
 
     @PostMapping("/register")
     @Loggable
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
-        return ResponseEntity.ok(authService.registerUser(registerRequest));
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest, HttpServletRequest httpReq) {
+        return ResponseEntity.ok(authService.registerUser(registerRequest, httpReq));
+    }
+    @PostMapping("/logout")
+    @Loggable
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(authService.logout(authHeader));
     }
 }
 
