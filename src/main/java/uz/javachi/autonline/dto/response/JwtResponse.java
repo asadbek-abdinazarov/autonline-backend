@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -18,11 +19,13 @@ public class JwtResponse {
     private String type = "Bearer";
     private Integer id;
     private String username;
+    private String fullName;
     private String phoneNumber;
-    private List<String> roles;
     private String subscription;
-    private List<String> subscriptionPermissions;
-    private List<String> rolePermissions;
     private String sessionId;
     private Boolean isActive;
+    private LocalDateTime nextPaymentDate;
+    private List<String> roles;
+    private List<String> rolePermissions;
+    private List<String> subscriptionPermissions;
 }
