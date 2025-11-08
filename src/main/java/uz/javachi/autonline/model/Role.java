@@ -6,9 +6,11 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uz.javachi.autonline.dto.response.RoleResponseDTO;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -16,8 +18,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "roles", 
-       uniqueConstraints = @UniqueConstraint(columnNames = "name"))
+@Table(name = "roles",
+        uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class Role {
 
     @Id
@@ -40,9 +42,9 @@ public class Role {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "role_permissions",
-        joinColumns = @JoinColumn(name = "role_id"),
-        inverseJoinColumns = @JoinColumn(name = "permission_id")
+            name = "role_permissions",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
     private Set<Permission> permissions;
 
@@ -77,5 +79,18 @@ public class Role {
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
         this.isActive = false;
+    }
+
+    public static RoleResponseDTO rolesToDto(Role role) {
+        return RoleResponseDTO.builder()
+                .roleId(role.getRoleId())
+                .description(role.getDescription())
+                .createdAt(role.getCreatedAt())
+                .updatedAt(role.getUpdatedAt())
+                .deletedAt(role.getDeletedAt())
+                .name(role.getName())
+                .isActive(role.getIsActive())
+                .permissions(role.getPermissions().stream().map(Permission::permissionToDto).collect(Collectors.toSet()))
+                .build();
     }
 }

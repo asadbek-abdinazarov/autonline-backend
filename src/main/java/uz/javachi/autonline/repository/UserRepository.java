@@ -50,4 +50,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.userId = :userId")
     Optional<User> findByIdWithRoles(@Param("userId") Integer userId);
+
+    Long countByIsActive(Boolean isActive);
 }

@@ -63,10 +63,17 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public GroupedOpenApi usersGroupAPI() {
+    public GroupedOpenApi lessonAPI() {
         return GroupedOpenApi.builder()
                 .group("Lesson")
                 .pathsToMatch("/api/v1/lesson/**")
+                .build();
+    }
+    @Bean
+    public GroupedOpenApi usersGroupAPI() {
+        return GroupedOpenApi.builder()
+                .group("Users")
+                .pathsToMatch("/api/v1/users/**")
                 .build();
     }
 

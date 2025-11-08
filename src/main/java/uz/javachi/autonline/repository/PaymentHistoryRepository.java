@@ -14,4 +14,6 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
             "p.paymentMethod, p.description) " +
             "FROM PaymentHistory p WHERE p.user.userId = :userId AND p.deletedAt IS NULL")
     List<PaymentHistoryResponse> findAllByUserId(@Param("userId") Integer userId);
+
+    Long countByIsPaid(Boolean isPaid);
 }

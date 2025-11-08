@@ -58,6 +58,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/api/v1/public/**").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/api/v1/news/**").permitAll()
+                                .requestMatchers("/api/v1/statistic/**").permitAll()
                                 .requestMatchers("/actuator/**").permitAll()
                                 .requestMatchers("/h2-console/**").hasRole("ADMIN")
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
@@ -84,7 +85,7 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000","http://localhost:3001", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);

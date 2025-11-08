@@ -19,9 +19,9 @@ public class JwtResponse {
     private Integer id;
     private String username;
     private String phoneNumber;
-/*    private List<String> roles;
-    private List<String> permissions;*/
+    private List<String> roles;
     private String subscription;
-    private List<String> permissions;
+    private List<String> subscriptionPermissions;
+    private List<String> rolePermissions;
     private Boolean isActive;
 }

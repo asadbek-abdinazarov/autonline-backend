@@ -17,14 +17,24 @@ import uz.javachi.autonline.config.security.JwtUtils;
 import uz.javachi.autonline.dto.request.LoginRequest;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
-import uz.javachi.autonline.exceptions.*;
-import uz.javachi.autonline.model.*;
-import uz.javachi.autonline.repository.*;
+import uz.javachi.autonline.exceptions.CustomRoleNotFoundException;
+import uz.javachi.autonline.exceptions.ResourceNotFoundException;
+import uz.javachi.autonline.exceptions.UserAlreadyExistsException;
+import uz.javachi.autonline.exceptions.UserIsNotActiveException;
+import uz.javachi.autonline.model.Permission;
+import uz.javachi.autonline.model.Role;
+import uz.javachi.autonline.model.Subscription;
+import uz.javachi.autonline.model.User;
+import uz.javachi.autonline.repository.PermissionRepository;
+import uz.javachi.autonline.repository.RoleRepository;
+import uz.javachi.autonline.repository.UserRepository;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
 
 import static uz.javachi.autonline.DefaultValues.DEFAULT_ROLE;
 import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
+import static uz.javachi.autonline.utils.Utils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -64,37 +74,11 @@ public class AuthService {
         List<@NotBlank @Size(min = 2, max = 100) String> subscriptionPermissions =
                 getActivePermissionNames(subscription);
 
-        // ⚠️ Kommentdagi kodga tegilmadi:
-        // Roles and permissions are now handled in JWT token generation
-        // These variables are kept for future use if needed
-//        @SuppressWarnings("unused")
-        /*List<String> roles = user.getRoles().stream()
-                .filter(role -> role.getIsActive() && !role.isDeleted())
-                .map(Role::getName)
-                .toList();*/
-
-//        @SuppressWarnings("unused")
-       /* List<String> permissions = user.getRoles().stream()
-                .filter(role -> role.getIsActive() && !role.isDeleted())
-                .flatMap(role -> role.getPermissions().stream())
-                .filter(permission -> permission.getIsActive() && !permission.isDeleted())
-                .map(Permission::getName)
-                .distinct()
-                .toList();*/
-
-        buildJwtResponse(jwtToken, user, subscription, subscriptionPermissions);
-
-        return JwtResponse.builder()
-                .token(jwtToken)
-                .type("Bearer")
-                .id(user.getUserId())
-                .username(user.getUsername())
-                .phoneNumber(user.getPhoneNumber())
-                .subscription(subscription.getName())
-                .permissions(subscriptionPermissions)
-                .isActive(user.getIsActive())
-                .build();
+        List<String> roles = getRoles(user);
+        List<String> rolePermissions = getPermissions(user);
+        return buildJwtResponse(jwtToken, user, subscription, subscriptionPermissions, rolePermissions, roles);
     }
+
 
     private Authentication authenticateCredentials(LoginRequest loginRequest) {
         try {
@@ -116,7 +100,7 @@ public class AuthService {
         Subscription freeSubscription = getSubscriptionOrThrow();
         Role userRole = getRoleOrThrow();
 
-        User newUser = buildNewUser(registerRequest, freeSubscription, userRole);
+        User newUser = buildNewUser(registerRequest, freeSubscription, userRole, passwordEncoder);
         userRepository.save(newUser);
 
         List<String> activePermissions = getActivePermissionNames(freeSubscription);
@@ -128,9 +112,12 @@ public class AuthService {
                 (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()
         );
 
+        List<String> roles = getRoles(newUser);
+        List<String> rolePermissions = getPermissions(newUser);
+
         log.info("✅ Foydalanuvchi muvaffaqiyatli ro‘yxatdan o‘tdi: {}", newUser.getUsername());
 
-        return buildJwtResponse(jwtToken, newUser, freeSubscription, activePermissions);
+        return buildJwtResponse(jwtToken, newUser, freeSubscription, activePermissions, rolePermissions, roles);
     }
 
     @Transactional
@@ -169,36 +156,8 @@ public class AuthService {
                 .orElseThrow(() -> new CustomRoleNotFoundException(STR."Rol topilmadi: \{DEFAULT_ROLE}"));
     }
 
-    private User buildNewUser(RegisterRequest request, Subscription subscription, Role role) {
-        return User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .phoneNumber(request.getPhoneNumber())
-                .isActive(true)
-                .subscription(subscription)
-                .paymentHistory(new ArrayList<>()) // Mutable list
-                .roles(Set.of(role))
-                .build();
-    }
 
-    private List<String> getActivePermissionNames(Subscription subscription) {
-        return subscription.getPermissions().stream()
-                .filter(permission -> Boolean.TRUE.equals(permission.getIsActive()) && !permission.isDeleted())
-                .map(Permission::getName)
-                .toList();
-    }
 
-    private JwtResponse buildJwtResponse(String token, User user, Subscription subscription, List<String> permissions) {
-        return JwtResponse.builder()
-                .id(user.getUserId())
-                .token(token)
-                .username(user.getUsername())
-                .phoneNumber(user.getPhoneNumber())
-                .isActive(user.getIsActive())
-                .subscription(subscription.getName())
-                .permissions(permissions)
-                .build();
-    }
 
     private void createPermissionIfNotExists(String name, String description) {
         if (permissionRepository.existsByName(name)) {
