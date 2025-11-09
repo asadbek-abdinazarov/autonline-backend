@@ -27,6 +27,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Failed", "message", ex.getMessage()));
     }
 
+    @ExceptionHandler({UserBlockedOrDeletedException.class})
+    public ResponseEntity<Map<String, String>> handleUserBlockedOrDeletedException(RuntimeException ex) {
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Blocked or Deleted", "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(CustomRoleNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleCustomRoleNotFoundException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

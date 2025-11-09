@@ -109,6 +109,10 @@ public class AuthService {
     @Transactional
     public JwtResponse registerUser(RegisterRequest registerRequest, HttpServletRequest httpReq) {
 
+        if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
+            throw new RuntimeException("Passwords do not match!");
+        }
+
         validateUniqueUser(registerRequest);
 
         Subscription freeSubscription = getSubscriptionOrThrow();

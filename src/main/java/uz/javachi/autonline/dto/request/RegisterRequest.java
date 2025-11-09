@@ -26,6 +26,10 @@ public class RegisterRequest {
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
+    @NotBlank(message = "Confirm password is required")
+    @Size(min = 8, message = "Confirm password must be at least 8 characters long")
+    private String confirmPassword;
+
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format")
     private String phoneNumber;

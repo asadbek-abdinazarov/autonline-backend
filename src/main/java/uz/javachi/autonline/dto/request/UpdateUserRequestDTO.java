@@ -1,4 +1,4 @@
-package uz.javachi.autonline.dto.response;
+package uz.javachi.autonline.dto.request;
 
 import lombok.Data;
 

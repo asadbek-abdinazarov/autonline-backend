@@ -8,10 +8,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.javachi.autonline.exceptions.UserBlockedOrDeletedException;
 import uz.javachi.autonline.model.Role;
 import uz.javachi.autonline.model.User;
 import uz.javachi.autonline.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
@@ -30,10 +32,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         log.debug("Loading user by username: {}", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
-
         if (user.isAccountActive()) {
-            log.warn("User {} is inactive or deleted", username);
-            throw new UsernameNotFoundException("Invalid credentials");
+            String fMessage = "User %s is inactive or deleted!".formatted(username);
+            log.warn(fMessage);
+            throw new UserBlockedOrDeletedException(fMessage);
+        }
+
+        if (user.getNextPaymentDate() != null && user.getNextPaymentDate().isBefore(LocalDateTime.now())) {
+            user.setIsActive(false);
+            userRepository.save(user);
+            throw new UserBlockedOrDeletedException("User Free trail is expired plase buy subscription!");
         }
         log.debug("Found user by ID: {} -> Username: {}", user.getUserId(), user.getUsername());
         return CustomUserDetails.fromUser(user);

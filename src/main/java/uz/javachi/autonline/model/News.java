@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import uz.javachi.autonline.dto.request.NewsRequestDTO;
 import uz.javachi.autonline.dto.response.NewsResponse;
 
 import java.time.LocalDateTime;
@@ -45,6 +46,15 @@ public class News {
     @Column(name = "news_created_at", nullable = false, updatable = false)
     private LocalDateTime newsCreatedAt;
 
+    public static News toEntity(NewsRequestDTO dto) {
+        return News.builder()
+                .newsTitle(dto.getNewsTitle())
+                .newsDescription(dto.getNewsDescription())
+                .newsPhoto(dto.getNewsPhoto())
+                .newsCreatedAt(LocalDateTime.now())
+                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+                .build();
+    }
 
     public static List<NewsResponse> toResponseList(List<News> newsList) {
         return newsList.stream().map(news -> NewsResponse.builder()

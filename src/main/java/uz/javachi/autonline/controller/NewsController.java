@@ -19,7 +19,7 @@ public class NewsController {
 
     @GetMapping
     public ResponseEntity<List<NewsResponse>> getAllActiveNews() {
-        return newsService.getAllActiveNews();
+        return newsService.getAllActiveNews(false);
     }
 
 }

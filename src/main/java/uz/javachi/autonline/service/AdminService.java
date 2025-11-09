@@ -7,14 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uz.javachi.autonline.dto.request.NewsRequestDTO;
 import uz.javachi.autonline.dto.response.RoleResponseDTO;
 import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
-import uz.javachi.autonline.dto.response.UpdateUserRequestDTO;
+import uz.javachi.autonline.dto.request.UpdateUserRequestDTO;
 import uz.javachi.autonline.dto.response.UserResponseDTO;
-import uz.javachi.autonline.model.Permission;
-import uz.javachi.autonline.model.Role;
-import uz.javachi.autonline.model.Subscription;
-import uz.javachi.autonline.model.User;
+import uz.javachi.autonline.model.*;
+import uz.javachi.autonline.repository.NewsRepository;
 import uz.javachi.autonline.repository.RoleRepository;
 import uz.javachi.autonline.repository.SubscriptionRepository;
 import uz.javachi.autonline.repository.UserRepository;
@@ -32,6 +31,8 @@ public class AdminService {
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final RoleRepository roleRepository;
+    private final UserBlockService userBlockService;
+    private final NewsRepository newsRepository;
 
 
     @Transactional(readOnly = true)
@@ -218,5 +219,29 @@ public class AdminService {
 
         userRepository.save(user);
         return "User updated successfully.";
+    }
+
+    public String unblockUser(Integer userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id: %s".formatted(userId)));
+        if (!user.isAccountActive()) {
+            throw new IllegalStateException("User %s is already active!".formatted(user.getUsername()));
+        }
+
+        user.setIsActive(true);
+        userRepository.saveAndFlush(user);
+
+        return "User %s unblocked successfully!".formatted(userId);
+    }
+
+    public String blockUser(Integer userId) {
+        userBlockService.blockUser(userId);
+        return "User %s blocked successfully!".formatted(userId);
+    }
+
+    public String createNews(NewsRequestDTO dto) {
+        News entity = News.toEntity(dto);
+        newsRepository.saveAndFlush(entity);
+        return "News created successfully!";
     }
 }

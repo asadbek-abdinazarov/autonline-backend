@@ -15,9 +15,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.service.SessionService;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 @Slf4j
@@ -25,11 +27,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
     private final SessionService sessionService;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, @Qualifier("customUserDetailsServiceIml") UserDetailsService userDetailsService, SessionService sessionService) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, @Qualifier("customUserDetailsServiceIml") UserDetailsService userDetailsService, UserRepository userRepository, SessionService sessionService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.userRepository = userRepository;
         this.sessionService = sessionService;
     }
 
@@ -41,12 +45,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = parseJwt(request);
             log.debug("JWT token found: {}", jwt != null ? "YES" : "NO");
-            
+
             if (jwt != null) {
                 log.debug("Validating JWT token...");
                 boolean isValid = jwtUtils.validateToken(jwt);
                 log.debug("JWT token validation result: {}", isValid);
-                
+
                 if (isValid) {
                     String username = jwtUtils.extractUsername(jwt);
                     log.debug("Extracted username from JWT: {}", username);
@@ -82,7 +86,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             log.error("Cannot set user authentication: {}", e.getMessage(), e);
-            return;
         }
 
         filterChain.doFilter(request, response);
