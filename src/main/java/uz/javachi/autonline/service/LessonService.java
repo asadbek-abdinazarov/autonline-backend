@@ -24,9 +24,16 @@ public class LessonService {
     private final QuestionRepository questionRepository;
 
     private LessonResponseDTO getLessonResponseDTO(Lesson lesson) {
+        LessonName lessonNames = lesson.getLessonNames();
+        LessonDescription lessonDescription = lesson.getLessonDescription();
         return LessonResponseDTO.builder()
                 .lessonId(lesson.getLessonId())
-                .lessonName(lesson.getLessonName())
+                .nameUz(lessonNames.getNameUz())
+                .nameOz(lessonNames.getNameOz())
+                .nameRu(lessonNames.getNameRu())
+                .descriptionOz(lessonDescription.getDescriptionOz())
+                .descriptionUz(lessonDescription.getDescriptionUz())
+                .descriptionRu(lessonDescription.getDescriptionRu())
                 .questions(lesson.getQuestions().stream()
                         .map(this::convertToDTO)
                         .collect(Collectors.toList()))
@@ -79,9 +86,16 @@ public class LessonService {
 
 
         LessonResponseDTO lessonResponseDTO = new LessonResponseDTO();
+        LessonName lessonNames = lesson.getLessonNames();
+        LessonDescription lessonDescription = lesson.getLessonDescription();
+
         lessonResponseDTO.setLessonId(lesson.getLessonId());
-        lessonResponseDTO.setLessonName(lesson.getLessonName());
-        lessonResponseDTO.setLessonDescription(lesson.getLessonDescription());
+        lessonResponseDTO.setNameUz(lessonNames.getNameUz());
+        lessonResponseDTO.setNameOz(lessonNames.getNameOz());
+        lessonResponseDTO.setNameRu(lessonNames.getNameRu());
+        lessonResponseDTO.setDescriptionOz(lessonDescription.getDescriptionOz());
+        lessonResponseDTO.setDescriptionUz(lessonDescription.getDescriptionUz());
+        lessonResponseDTO.setDescriptionRu(lessonDescription.getDescriptionRu());
         lessonResponseDTO.setLessonIcon(lesson.getLessonIcon());
         lessonResponseDTO.setLessonQuestionCount(questionRepository.countQuestionByLesson(lesson.getLessonId()));
 
@@ -129,6 +143,7 @@ public class LessonService {
     public List<LessonAnonsProjection> getAllLessonsAnons() {
         return lessonRepository.findAllLessonsAnons();
     }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordView(Integer lessonId, Optional<Integer> currentUserId) {
         lessonRepository.incrementViews(lessonId);
@@ -158,9 +173,16 @@ public class LessonService {
                     List<Question> lessonQuestions = entry.getValue();
 
                     LessonResponseDTO lessonResponseDTO = new LessonResponseDTO();
+                    LessonName lessonNames = lesson.getLessonNames();
+                    LessonDescription lessonDescription = lesson.getLessonDescription();
+
                     lessonResponseDTO.setLessonId(lesson.getLessonId());
-                    lessonResponseDTO.setLessonName(lesson.getLessonName());
-                    lessonResponseDTO.setLessonDescription(lesson.getLessonDescription());
+                    lessonResponseDTO.setNameUz(lessonNames.getNameUz());
+                    lessonResponseDTO.setNameOz(lessonNames.getNameOz());
+                    lessonResponseDTO.setNameRu(lessonNames.getNameRu());
+                    lessonResponseDTO.setDescriptionOz(lessonDescription.getDescriptionOz());
+                    lessonResponseDTO.setDescriptionUz(lessonDescription.getDescriptionUz());
+                    lessonResponseDTO.setDescriptionRu(lessonDescription.getDescriptionRu());
                     lessonResponseDTO.setLessonIcon(lesson.getLessonIcon());
                     lessonResponseDTO.setLessonQuestionCount((long) lessonQuestions.size());
 

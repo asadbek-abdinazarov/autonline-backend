@@ -16,9 +16,12 @@ public class Lesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer lessonId;
-    private String lessonName;
-    private String lessonDescription;
     private String lessonIcon;
+
+    @Enumerated
+    private LessonName lessonNames;
+    @Enumerated
+    private LessonDescription lessonDescription;
 
     @Column(name = "views_count")
     private Long viewsCount = 0L;

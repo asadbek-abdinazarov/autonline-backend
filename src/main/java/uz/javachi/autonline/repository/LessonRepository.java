@@ -30,10 +30,17 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
 
 
     @Query("SELECT new uz.javachi.autonline.dto.response.LessonResponseDTO(" +
-            "l.lessonId, l.lessonName, l.lessonDescription, l.lessonIcon, COUNT(q), l.viewsCount)" +
+            "l.lessonId," +
+            "l.lessonNames.nameUz," +
+            "l.lessonNames.nameOz," +
+            "l.lessonNames.nameRu," +
+            "l.lessonDescription.descriptionUz," +
+            "l.lessonDescription.descriptionOz," +
+            "l.lessonDescription.descriptionRu," +
+            "l.lessonIcon, COUNT(q), l.viewsCount)" +
             "FROM Lesson l " +
             "LEFT JOIN l.questions q " +
-            "GROUP BY l.lessonId, l.lessonName, l.lessonDescription, l.lessonIcon order by count(q)")
+            "GROUP BY l.lessonId, l.lessonNames.nameUz,l.lessonNames.nameOz,l.lessonNames.nameRu, l.lessonDescription.descriptionUz,l.lessonDescription.descriptionOz,l.lessonDescription.descriptionRu, l.lessonIcon order by count(q)")
     List<LessonAnonsProjection> findAllLessonsAnons();
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)

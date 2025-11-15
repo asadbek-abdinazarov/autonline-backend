@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
+import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
 import static uz.javachi.autonline.config.security.CustomUserDetails.getGrantedAuthorities;
 
 @Service("customUserDetailsServiceIml")
@@ -41,7 +42,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user.getNextPaymentDate() != null && user.getNextPaymentDate().isBefore(LocalDateTime.now())) {
             user.setIsActive(false);
             userRepository.save(user);
-            throw new UserBlockedOrDeletedException("User Free trail is expired plase buy subscription!");
+            if (user.getSubscription().getName().equals(DEFAULT_SUBSCRIPTION)) {
+                throw new UserBlockedOrDeletedException("Sizning Tekin obunangiz vaqti tugagan, Obuna sotib olishingiz kerak!");
+            }else {
+                throw new UserBlockedOrDeletedException("Obuna vaqti tugagan, Yangi obuna sotib olishingiz kerak!");
+            }
         }
         log.debug("Found user by ID: {} -> Username: {}", user.getUserId(), user.getUsername());
         return CustomUserDetails.fromUser(user);

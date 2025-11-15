@@ -8,9 +8,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.dto.request.NewsRequestDTO;
+import uz.javachi.autonline.dto.request.UpdateUserRequestDTO;
 import uz.javachi.autonline.dto.response.RoleResponseDTO;
 import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
-import uz.javachi.autonline.dto.request.UpdateUserRequestDTO;
 import uz.javachi.autonline.dto.response.UserResponseDTO;
 import uz.javachi.autonline.model.*;
 import uz.javachi.autonline.repository.NewsRepository;
@@ -33,12 +33,14 @@ public class AdminService {
     private final RoleRepository roleRepository;
     private final UserBlockService userBlockService;
     private final NewsRepository newsRepository;
+    private final MessageService messageService;
 
 
     @Transactional(readOnly = true)
+
     public Page<UserResponseDTO> getAllUsers(int page, int size) {
         Integer currentUserId = SecurityUtils.getCurrentUserId()
-                .orElseThrow(() -> new RuntimeException("Current user is not authenticated!"));
+                .orElseThrow(() -> new RuntimeException(messageService.get("current.user.not.authenticated")));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<User> userPage = userRepository.findAllWithoutHimSelf(currentUserId, pageable);
@@ -55,12 +57,12 @@ public class AdminService {
         validateSubscriptionActive(subscription);
 
         if (subscriptionId.equals(user.getSubscription().getSubscriptionId())) {
-            return "User already has %s subscription".formatted(subscription.getName());
+            return messageService.get("user.already.has.subscription", subscription.getName());
         }
 
         boolean updated = userRepository.updateUserSubscription(userId, subscriptionId) > 0;
-        return updated ? "User subscription updated successfully!"
-                : "User subscription not updated!";
+        return updated ? messageService.get("user.subscription.success.updated") :
+                messageService.get("user.subscription.not.updated");
     }
 
 
@@ -89,22 +91,19 @@ public class AdminService {
         validateRoleActive(role);
 
         if (userHasRole(user, roleId)) {
-            throw new IllegalStateException("User %s already has %s role!"
-                    .formatted(user.getUsername(), role.getName()));
+            throw new IllegalStateException(messageService.get("user.already.has.role", user.getUsername(), role.getName()));
         }
 
         user.getRoles().add(role);
-        userRepository.save(user);
-
-        return "Role %s added to user %s successfully!"
-                .formatted(role.getName(), user.getUsername());
+        userRepository.saveAndFlush(user);
+        return messageService.get("role.success.added.to.user", role.getName(), user.getUsername());
     }
 
     @Transactional
     public String deleteRoleFromUser(Integer userId, Integer roleId) {
         Integer currentUserId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("Current user is not authenticated!"));
         if (currentUserId.equals(userId)) {
-            throw new IllegalStateException("User cannot remove role from himself!");
+            throw new IllegalStateException(messageService.get("user.cannot.remove.role.from.himself"));
         }
         User user = getUserOrThrow(userId);
         validateUserActive(user);
@@ -113,52 +112,50 @@ public class AdminService {
         validateRoleActive(role);
 
         if (role.getName().equals(DEFAULT_ROLE)) {
-            throw new RuntimeException("%s role is by default role you cannot remove from user!".formatted(DEFAULT_ROLE));
+            throw new RuntimeException(messageService.get("default.user.role.cant.remove", DEFAULT_ROLE));
         }
 
         if (!userHasRole(user, roleId)) {
-            throw new IllegalStateException("User %s does not have %s role!"
-                    .formatted(user.getUsername(), role.getName()));
+            throw new IllegalStateException(messageService.get("user.does.not.have.role", user.getUsername(), role.getName()));
         }
 
         user.getRoles().remove(role);
         userRepository.save(user);
 
-        return "Role %s removed from user %s successfully!"
-                .formatted(role.getName(), user.getUsername());
+        return messageService.get("role.successful.deleted.from.user", role.getName(), user.getUsername());
     }
 
 
     private User getUserOrThrow(Integer userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: %s".formatted(userId)));
+                .orElseThrow(() -> new RuntimeException(messageService.get("user.not.found.with.id", userId)));
     }
 
     private Role getRoleOrThrow(Integer roleId) {
         return roleRepository.findById(roleId)
-                .orElseThrow(() -> new RuntimeException("Role not found with id: %s".formatted(roleId)));
+                .orElseThrow(() -> new RuntimeException(messageService.get("role.not.found.with.id", roleId)));
     }
 
     private Subscription getSubscriptionOrThrow(Integer subscriptionId) {
         return subscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: %s".formatted(subscriptionId)));
+                .orElseThrow(() -> new RuntimeException(messageService.get("subscription.not.found.with.id", subscriptionId)));
     }
 
     private void validateUserActive(User user) {
         if (user.isAccountActive()) {
-            throw new IllegalStateException("User %s is not active!".formatted(user.getUsername()));
+            throw new IllegalStateException(messageService.get("user.is.not.active", user.getUsername()));
         }
     }
 
     private void validateRoleActive(Role role) {
         if (Boolean.FALSE.equals(role.getIsActive()) || role.getDeletedAt() != null) {
-            throw new IllegalStateException("Role %s is not active!".formatted(role.getName()));
+            throw new IllegalStateException(messageService.get("role.is.not.active", role.getName()));
         }
     }
 
     private void validateSubscriptionActive(Subscription subscription) {
         if (Boolean.FALSE.equals(subscription.getIsActive())) {
-            throw new IllegalStateException("%s subscription is not active!".formatted(subscription.getName()));
+            throw new IllegalStateException(messageService.get("subscription.is.not.active", subscription.getName()));
         }
     }
 
@@ -199,7 +196,7 @@ public class AdminService {
     @Transactional
     public String partialUpdateUser(Integer id, UpdateUserRequestDTO dto) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: %s".formatted(id)));
+                .orElseThrow(() -> new RuntimeException(messageService.get("user.not.found.with.id", id)));
 
         if (dto.getFullName() != null && !dto.getFullName().isBlank()) {
             user.setFullName(dto.getFullName());
@@ -218,30 +215,30 @@ public class AdminService {
         }
 
         userRepository.save(user);
-        return "User updated successfully.";
+        return messageService.get("user.partial.updated", user.getUsername());
     }
 
     public String unblockUser(Integer userId) {
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id: %s".formatted(userId)));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException(messageService.get("user.not.found.with.id", userId)));
         if (!user.isAccountActive()) {
-            throw new IllegalStateException("User %s is already active!".formatted(user.getUsername()));
+            throw new IllegalStateException(messageService.get("user.is.already.active"));
         }
 
         user.setIsActive(true);
         userRepository.saveAndFlush(user);
 
-        return "User %s unblocked successfully!".formatted(userId);
+        return messageService.get("user.successful.unblocked", userId);
     }
 
     public String blockUser(Integer userId) {
         userBlockService.blockUser(userId);
-        return "User %s blocked successfully!".formatted(userId);
+        return messageService.get("user.successful.blocked", userId);
     }
 
     public String createNews(NewsRequestDTO dto) {
         News entity = News.toEntity(dto);
         newsRepository.saveAndFlush(entity);
-        return "News created successfully!";
+        return messageService.get("news.successfully.created");
     }
 }
