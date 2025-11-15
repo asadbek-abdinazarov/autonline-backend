@@ -35,7 +35,7 @@ public class CountViewAspect {
         Object result = pjp.proceed();
 
         if (topicId != null) {
-            lessonService.recordView(topicId, getCurrentUserId());
+//            lessonService.recordView(topicId, getCurrentUserId());
         }
 
         return result;

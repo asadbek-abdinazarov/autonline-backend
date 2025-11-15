@@ -1,6 +1,7 @@
 package uz.javachi.autonline.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uz.javachi.autonline.dto.response.LessonHistoryDTO;
@@ -19,11 +20,9 @@ public class LessonHistoryService {
     private final LessonHistoryRepository lessonHistoryRepository;
 
     public ResponseEntity<List<LessonHistoryProjection>> getAllMyLessonHistory() {
-
+        String lang = LocaleContextHolder.getLocale().getLanguage();
         Integer currentUserId = getCurrentUserIdOrThrow();
-        List<LessonHistoryProjection> allByUserId = lessonHistoryRepository.getAllByUserId(currentUserId);
-
-        return ResponseEntity.ok(allByUserId);
+        return ResponseEntity.ok(lessonHistoryRepository.getAllByUserId(currentUserId, lang));
 
     }
 

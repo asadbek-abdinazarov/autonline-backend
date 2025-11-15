@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uz.javachi.autonline.customAnnotations.CountView;
-import uz.javachi.autonline.dto.response.LessonResponseDTO;
 import uz.javachi.autonline.projection.LessonAnonsProjection;
+import uz.javachi.autonline.dto.response.LessonResponseDTO;
 import uz.javachi.autonline.service.LessonService;
 
 import java.util.List;
@@ -23,15 +23,15 @@ public class LessonController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public List<LessonAnonsProjection> getAllLessonsAnons() {
-        return lessonService.getAllLessonsAnons();
+    public List<LessonAnonsProjection> getLessonsAnons() {
+        return lessonService.getLessonsAnons();
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @CountView
     public ResponseEntity<LessonResponseDTO> getByLessonId(@PathVariable(name = "id") Integer lessonId) {
-        return lessonService.getByLessonId(lessonId);
+        return ResponseEntity.ok(lessonService.getLesson(lessonId));
     }
 
 

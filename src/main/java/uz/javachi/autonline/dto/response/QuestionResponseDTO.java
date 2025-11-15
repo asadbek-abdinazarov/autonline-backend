@@ -2,15 +2,14 @@ package uz.javachi.autonline.dto.response;
 
 import lombok.*;
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class QuestionResponseDTO {
+import java.util.List;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class QuestionResponseDTO {
     private Integer questionId;
     private String photo;
-    private QuestionTextResponseDTO questionText;
-    private AnswerResponseDTO answers;
+    private String questionText;
+    private List<VariantResponseDTO> variants;
 }

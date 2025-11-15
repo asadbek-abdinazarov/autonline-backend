@@ -16,12 +16,4 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     @Query(value = "SELECT question_id FROM question ORDER BY RANDOM() LIMIT :interval", nativeQuery = true)
     List<Integer> findRandomQuestionIds(@Param("interval") Integer interval);
-
-    @Query("SELECT q FROM Question q " +
-            "LEFT JOIN FETCH q.questionText qt " +
-            "LEFT JOIN FETCH q.answers a " +
-            "LEFT JOIN FETCH a.answerText at " +
-            "LEFT JOIN FETCH q.lesson l " +
-            "WHERE q.questionId IN :questionIds")
-    List<Question> findQuestionsByIdsWithAllRelations(@Param("questionIds") List<Integer> questionIds);
 }
