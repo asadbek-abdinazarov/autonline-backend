@@ -51,19 +51,18 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final SubscriptionService subscriptionService;
     private final SessionService sessionService;
+    private final MessageService messageService;
 
     @Transactional
     public JwtResponse authenticateUser(LoginRequest loginRequest, HttpServletRequest httpReq) {
 
         User user = userRepository.findByUsernameAndSubscription(loginRequest.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        String.format("%s nomda foydalanuvchi topilmadi", loginRequest.getUsername())
+                        messageService.get("user.not.found.with.sm", loginRequest.getUsername())
                 ));
 
         if (user.isAccountActive()) {
-            throw new UserIsNotActiveException(
-                    "Foydalanuvchi hisobingiz bloklangan. Iltimos, administrator bilan bog'laning."
-            );
+            throw new UserIsNotActiveException(messageService.get("user.is.blocked"));
         }
 
         List<UserSession> active = sessionService.listActiveSessions(user.getUserId());
@@ -102,7 +101,7 @@ public class AuthService {
                     )
             );
         } catch (BadCredentialsException ex) {
-            throw new BadCredentialsException("Foydalanuvchi nomi yoki parol noto‘g‘ri", ex);
+            throw new BadCredentialsException(messageService.get("username.or.password.incorrect"), ex);
         }
     }
 
@@ -110,7 +109,7 @@ public class AuthService {
     public JwtResponse registerUser(RegisterRequest registerRequest, HttpServletRequest httpReq) {
 
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
-            throw new RuntimeException("Passwords do not match!");
+            throw new RuntimeException(messageService.get("password.do.not.match"));
         }
 
         validateUniqueUser(registerRequest);
@@ -144,7 +143,7 @@ public class AuthService {
 
         return buildJwtResponse(jwtToken, newUser, freeSubscription, activePermissions, rolePermissions, roles, sessionId);
     }
-
+    @SuppressWarnings("unused")
     @Transactional
     public void initializeDefaultRolesAndPermissions() {
         createPermissionIfNotExists("READ_LESSONS", "Read lessons permission");
@@ -163,11 +162,11 @@ public class AuthService {
 
     private void validateUniqueUser(RegisterRequest registerRequest) {
         if (userRepository.existsByUsernameAndNotDeleted(registerRequest.getUsername())) {
-            throw new UserAlreadyExistsException("Bu nom bilan foydalanuvchi allaqachon mavjud!");
+            throw new UserAlreadyExistsException(messageService.get("username.already.exists"));
         }
 
         if (userRepository.existsByPhoneNumberAndNotDeleted(registerRequest.getPhoneNumber())) {
-            throw new UserAlreadyExistsException("Bu telefon raqami allaqachon ro‘yxatdan o‘tgan!");
+            throw new UserAlreadyExistsException(messageService.get("phone.number.already.exists"));
         }
     }
 

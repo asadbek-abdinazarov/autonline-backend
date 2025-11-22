@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uz.javachi.autonline.dto.response.LessonResponseDTO;
 import uz.javachi.autonline.service.LessonService;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1/random-quiz")
 @RequiredArgsConstructor
@@ -21,7 +19,7 @@ public class RandomQuizController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<List<LessonResponseDTO>> getRandomQuiz(@RequestParam Integer interval) {
+    public ResponseEntity<LessonResponseDTO> getRandomQuiz(@RequestParam Integer interval) {
         return lessonService.getRandomQuiz(interval);
     }
 }

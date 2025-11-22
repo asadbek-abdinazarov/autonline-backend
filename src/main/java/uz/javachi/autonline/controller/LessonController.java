@@ -33,6 +33,4 @@ public class LessonController {
     public ResponseEntity<LessonResponseDTO> getByLessonId(@PathVariable(name = "id") Integer lessonId) {
         return ResponseEntity.ok(lessonService.getLesson(lessonId));
     }
-
-
 }

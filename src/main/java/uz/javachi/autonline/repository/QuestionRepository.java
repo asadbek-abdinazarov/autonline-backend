@@ -11,9 +11,13 @@ import java.util.List;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
-    @Query(nativeQuery = true, value = "select count(*) from question where lesson_id = ?1")
-    Long countQuestionByLesson(@Param("lessonId") Integer lessonId);
-
-    @Query(value = "SELECT question_id FROM question ORDER BY RANDOM() LIMIT :interval", nativeQuery = true)
-    List<Integer> findRandomQuestionIds(@Param("interval") Integer interval);
+    @Query(value = """
+                SELECT q.question_id,q.photo , q.lesson_id, qt.question_text
+                FROM question q
+                LEFT JOIN question_translation qt on q.question_id = qt.question_id
+                    WHERE qt.lang = :lang
+                ORDER BY RANDOM()
+                LIMIT :interval
+            """, nativeQuery = true)
+    List<Question> findRandomQuestions(@Param("interval") Integer interval, @Param("lang") String lang);
 }

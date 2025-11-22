@@ -3,6 +3,7 @@ package uz.javachi.autonline.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,5 +27,15 @@ public class Variant {
     private Question question;
 
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<VariantTranslation> translations = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return "Variant{" +
+                "variantId=" + variantId +
+                ", isCorrect=" + isCorrect +
+                ", translations=" + translations +
+                '}';
+    }
 }

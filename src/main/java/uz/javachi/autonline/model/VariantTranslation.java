@@ -21,10 +21,19 @@ public class VariantTranslation implements Localized {
     @Column(length = 10, nullable = false)
     private String lang;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String text;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "variant_id")
     private Variant variant;
+
+    @Override
+    public String toString() {
+        return "VariantTranslation{" +
+                "id=" + id +
+                ", lang='" + lang + '\'' +
+                ", text='" + text + '\'' +
+                '}';
+    }
 }

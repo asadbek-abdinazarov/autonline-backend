@@ -27,4 +27,13 @@ public class QuestionTranslation implements Localized {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
     private Question question;
+
+    @Override
+    public String toString() {
+        return "QuestionTranslation{" +
+                "id=" + id +
+                ", lang='" + lang + '\'' +
+                ", questionText='" + questionText + '\'' +
+                '}';
+    }
 }

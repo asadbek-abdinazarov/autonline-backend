@@ -5,15 +5,18 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
-
-import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
+import uz.javachi.autonline.config.LocaleCopyingTaskDecorator;
 
 @Slf4j
+@EnableAsync
 @SpringBootApplication
 @EnableAspectJAutoProxy
-//@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class AutonlineApplication {
 
     public static void main(String[] args) {
@@ -23,6 +26,7 @@ public class AutonlineApplication {
 
     @PostConstruct
     public void init() {
+//        autoSaveService.saveQuestion();
         log.info("✅Dastur ishga tushirildi...");
     }
 
@@ -31,4 +35,16 @@ public class AutonlineApplication {
         log.info("Dastur ishlashdan to'xtatildi...");
     }
 
+    @Bean(name = "applicationTaskExecutor")
+    public AsyncTaskExecutor taskExecutor(LocaleCopyingTaskDecorator decorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(100);
+        executor.setTaskDecorator(decorator);
+        executor.setThreadNamePrefix("AsyncExecutor-");
+        executor.initialize();
+
+        return new DelegatingSecurityContextAsyncTaskExecutor(executor);
+    }
 }

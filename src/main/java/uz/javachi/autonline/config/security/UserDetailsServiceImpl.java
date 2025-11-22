@@ -12,12 +12,12 @@ import uz.javachi.autonline.exceptions.UserBlockedOrDeletedException;
 import uz.javachi.autonline.model.Role;
 import uz.javachi.autonline.model.User;
 import uz.javachi.autonline.repository.UserRepository;
+import uz.javachi.autonline.service.MessageService;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
-import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
 import static uz.javachi.autonline.config.security.CustomUserDetails.getGrantedAuthorities;
 
 @Service("customUserDetailsServiceIml")
@@ -26,6 +26,7 @@ import static uz.javachi.autonline.config.security.CustomUserDetails.getGrantedA
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final MessageService messageService;
 
     @Override
     @Transactional
@@ -42,11 +43,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user.getNextPaymentDate() != null && user.getNextPaymentDate().isBefore(LocalDateTime.now())) {
             user.setIsActive(false);
             userRepository.save(user);
-            if (user.getSubscription().getName().equals(DEFAULT_SUBSCRIPTION)) {
-                throw new UserBlockedOrDeletedException("Sizning Tekin obunangiz vaqti tugagan, Obuna sotib olishingiz kerak!");
-            }else {
-                throw new UserBlockedOrDeletedException("Obuna vaqti tugagan, Yangi obuna sotib olishingiz kerak!");
-            }
+
+            throw new UserBlockedOrDeletedException(messageService.get("subscription.is.expire"));
         }
         log.debug("Found user by ID: {} -> Username: {}", user.getUserId(), user.getUsername());
         return CustomUserDetails.fromUser(user);

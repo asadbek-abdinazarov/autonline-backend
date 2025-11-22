@@ -1,15 +1,16 @@
 package uz.javachi.autonline.service;
 
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class MessageService {
 
     private final MessageSource messageSource;
 
-    public MessageService(MessageSource messageSource) {
+    public MessageService(@Lazy MessageSource messageSource) {
         this.messageSource = messageSource;
     }
 

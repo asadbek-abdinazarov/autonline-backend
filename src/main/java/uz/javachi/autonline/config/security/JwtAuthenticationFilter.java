@@ -15,11 +15,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.service.SessionService;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 @Component
 @Slf4j
@@ -27,13 +25,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
-    private final UserRepository userRepository;
     private final SessionService sessionService;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, @Qualifier("customUserDetailsServiceIml") UserDetailsService userDetailsService, UserRepository userRepository, SessionService sessionService) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils,
+                                   @Qualifier("customUserDetailsServiceIml") UserDetailsService userDetailsService,
+                                   SessionService sessionService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
-        this.userRepository = userRepository;
         this.sessionService = sessionService;
     }
 

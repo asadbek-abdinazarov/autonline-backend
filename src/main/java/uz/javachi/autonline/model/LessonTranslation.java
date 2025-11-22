@@ -21,7 +21,7 @@ public class LessonTranslation implements Localized {
     @Column(length = 10, nullable = false)
     private String lang;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String name;
 
     @Column(columnDefinition = "TEXT")
@@ -30,5 +30,20 @@ public class LessonTranslation implements Localized {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id")
     private Lesson lesson;
+
+    public LessonTranslation(String lang, String name) {
+        this.lang = lang;
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "LessonTranslation{" +
+                "id=" + id +
+                ", lang='" + lang + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                '}';
+    }
 }
 
