@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.javachi.autonline.customAnnotations.Loggable;
 import uz.javachi.autonline.dto.request.LoginRequest;
+import uz.javachi.autonline.dto.request.RefreshTokenRequest;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.service.AuthService;
 
@@ -35,6 +36,12 @@ public class AuthController {
     @Loggable
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok(authService.logout(authHeader));
+    }
+
+    @PostMapping("/refresh-token")
+    @Loggable
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest, HttpServletRequest httpReq) {
+        return ResponseEntity.ok(authService.refreshToken(refreshTokenRequest, httpReq));
     }
 }
 

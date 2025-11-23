@@ -10,25 +10,55 @@ import java.util.Optional;
 @Slf4j
 public class SecurityUtils {
 
+    // Thread-local cache for Authentication to avoid repeated SecurityContext lookups
+    private static final ThreadLocal<Authentication> AUTH_CACHE = new ThreadLocal<>();
+
+    /**
+     * Get the current authentication from SecurityContext (with caching)
+     */
+    private static Authentication getAuthentication() {
+        Authentication cached = AUTH_CACHE.get();
+        if (cached != null) {
+            // Verify it's still the same (SecurityContext might have changed)
+            Authentication current = SecurityContextHolder.getContext().getAuthentication();
+            if (cached == current) {
+                return cached;
+            }
+            // Context changed, update cache
+            AUTH_CACHE.set(current);
+            return current;
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        AUTH_CACHE.set(auth);
+        return auth;
+    }
+
+    /**
+     * Clear the authentication cache (call this when done with request processing)
+     */
+    public static void clearAuthCache() {
+        AUTH_CACHE.remove();
+    }
+
     /**
      * Get the current user ID from the authentication context
      *
      * @return Optional containing the user ID if available
      */
     public static Optional<Integer> getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
 
-        log.debug("Authentication object: {}", authentication);
-        log.debug("Authentication principal: {}", authentication != null ? authentication.getPrincipal() : "null");
-        log.debug("Authentication principal class: {}", authentication != null && authentication.getPrincipal() != null ? authentication.getPrincipal().getClass().getName() : "null");
-
-        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-            log.debug("Found CustomUserDetails with ID: {}", userDetails.getUserId());
+        if (authentication != null && authentication.isAuthenticated() 
+                && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            if (log.isDebugEnabled()) {
+                log.debug("Found CustomUserDetails with ID: {}", userDetails.getUserId());
+            }
             return Optional.of(userDetails.getUserId());
         }
 
-        log.warn("No valid user ID found in authentication context. Authentication: {}, Principal: {}",
-                authentication, authentication != null ? authentication.getPrincipal() : "null");
+        if (log.isDebugEnabled()) {
+            log.debug("No valid user ID found in authentication context");
+        }
         return Optional.empty();
     }
 
@@ -50,7 +80,7 @@ public class SecurityUtils {
      * @return Optional containing the username if available
      */
     public static Optional<String> getCurrentUsername() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
 
         if (authentication != null && authentication.isAuthenticated()) {
             return Optional.of(authentication.getName());
@@ -65,17 +95,19 @@ public class SecurityUtils {
      * @return Optional containing the CustomUserDetails if available
      */
     public static Optional<CustomUserDetails> getCurrentUserDetails() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
 
-        log.debug("Getting current user details. Authentication: {}, Principal: {}",
-                authentication, authentication != null ? authentication.getPrincipal() : "null");
-
-        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails) {
-            log.debug("Found CustomUserDetails: {}", authentication.getPrincipal());
-            return Optional.of((CustomUserDetails) authentication.getPrincipal());
+        if (authentication != null && authentication.isAuthenticated() 
+                && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            if (log.isDebugEnabled()) {
+                log.debug("Found CustomUserDetails: {}", userDetails.getUsername());
+            }
+            return Optional.of(userDetails);
         }
 
-        log.warn("No CustomUserDetails found in authentication context");
+        if (log.isDebugEnabled()) {
+            log.debug("No CustomUserDetails found in authentication context");
+        }
         return Optional.empty();
     }
 
@@ -86,11 +118,12 @@ public class SecurityUtils {
      * @return true if the user has the role
      */
     public static boolean hasRole(String role) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = getAuthentication();
 
         if (authentication != null && authentication.isAuthenticated()) {
+            String roleAuthority = "ROLE_" + role.toUpperCase();
             return authentication.getAuthorities().stream()
-                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+                    .anyMatch(authority -> authority.getAuthority().equals(roleAuthority));
         }
 
         return false;

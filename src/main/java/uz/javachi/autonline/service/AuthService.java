@@ -1,8 +1,6 @@
 package uz.javachi.autonline.service;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -11,12 +9,15 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.config.security.JwtUtils;
 import uz.javachi.autonline.dto.request.LoginRequest;
+import uz.javachi.autonline.dto.request.RefreshTokenRequest;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
 import uz.javachi.autonline.exceptions.CustomRoleNotFoundException;
@@ -52,6 +53,7 @@ public class AuthService {
     private final SubscriptionService subscriptionService;
     private final SessionService sessionService;
     private final MessageService messageService;
+    private final UserDetailsService userDetailsService;
 
     @Transactional
     public JwtResponse authenticateUser(LoginRequest loginRequest, HttpServletRequest httpReq) {
@@ -61,7 +63,8 @@ public class AuthService {
                         messageService.get("user.not.found.with.sm", loginRequest.getUsername())
                 ));
 
-        if (user.isAccountActive()) {
+        // Fix: Check if user is NOT active or deleted
+        if (!user.getIsActive() || user.isDeleted()) {
             throw new UserIsNotActiveException(messageService.get("user.is.blocked"));
         }
 
@@ -78,18 +81,27 @@ public class AuthService {
         Authentication authentication = authenticateCredentials(loginRequest);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwtToken = jwtUtils.generateToken(
-                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal(),
-                Map.of("sessionId", sessionId)
-        );
-
         Subscription subscription = user.getSubscription();
-        List<@NotBlank @Size(min = 2, max = 100) String> subscriptionPermissions =
-                getActivePermissionNames(subscription);
-
         List<String> roles = getRoles(user);
         List<String> rolePermissions = getPermissions(user);
-        return buildJwtResponse(jwtToken, user, subscription, subscriptionPermissions, rolePermissions, roles, sessionId);
+        List<String> subscriptionPermissions = getActivePermissionNames(subscription);
+
+
+        Result result = getResult(authentication, sessionId, roles, rolePermissions, user);
+
+//        // Generate tokens with all claims in one go
+//        UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
+//
+//        // Create claims map with sessionId, roles, and permissions
+//        Map<String, Object> claims = new java.util.HashMap<>();
+//        claims.put("sessionId", sessionId);
+//        claims.put("roles", roles);
+//        claims.put("permissions", rolePermissions);
+//
+//        String accessToken = jwtUtils.generateToken(userDetails, claims);
+//        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+
+        return buildJwtResponse(result.accessToken(), result.refreshToken(), user, subscription, subscriptionPermissions, rolePermissions, roles, sessionId);
     }
 
 
@@ -130,19 +142,34 @@ public class AuthService {
         Authentication authentication = authenticateCredentials(new LoginRequest(registerRequest.getUsername(), registerRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwtToken = jwtUtils.generateToken(
-                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal(),
-                Map.of("sessionId", sessionId)
-
-        );
-
+        // Pre-compute roles and permissions
         List<String> roles = getRoles(newUser);
         List<String> rolePermissions = getPermissions(newUser);
 
+        // Generate tokens with all claims in one go
+        Result result = getResult(authentication, sessionId, roles, rolePermissions, newUser);
+
         log.info("✅ Foydalanuvchi muvaffaqiyatli ro‘yxatdan o‘tdi: {}", newUser.getUsername());
 
-        return buildJwtResponse(jwtToken, newUser, freeSubscription, activePermissions, rolePermissions, roles, sessionId);
+        return buildJwtResponse(result.accessToken(), result.refreshToken(), newUser, freeSubscription, activePermissions, rolePermissions, roles, sessionId);
     }
+
+    private Result getResult(Authentication authentication, String sessionId, List<String> roles, List<String> rolePermissions, User newUser) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        Map<String, Object> claims = new java.util.HashMap<>();
+        claims.put("sessionId", sessionId);
+        claims.put("roles", roles);
+        claims.put("permissions", rolePermissions);
+
+        String accessToken = jwtUtils.generateToken(userDetails, claims);
+        String refreshToken = jwtUtils.generateRefreshToken(newUser.getUsername());
+        return new Result(accessToken, refreshToken);
+    }
+
+    private record Result(String accessToken, String refreshToken) {
+    }
+
     @SuppressWarnings("unused")
     @Transactional
     public void initializeDefaultRolesAndPermissions() {
@@ -216,11 +243,108 @@ public class AuthService {
         log.info("🟢 Created role: {} with permissions: {}", name, permissionNames);
     }
 
+    @Transactional
+    public JwtResponse refreshToken(RefreshTokenRequest refreshTokenRequest, HttpServletRequest httpReq) {
+        String refreshToken = refreshTokenRequest.getRefreshToken();
+
+        // Validate refresh token
+        if (!jwtUtils.validateToken(refreshToken)) {
+            throw new BadCredentialsException(messageService.get("invalid.refresh.token"));
+        }
+
+        // Check if it's actually a refresh token
+        if (!jwtUtils.isRefreshToken(refreshToken)) {
+            throw new BadCredentialsException(messageService.get("token.is.not.refresh.token"));
+        }
+
+        // Extract username from refresh token
+        String username = jwtUtils.extractUsername(refreshToken);
+        if (username == null) {
+            throw new UsernameNotFoundException(messageService.get("user.not.found"));
+        }
+
+        // Load user
+        User user = userRepository.findByUsernameAndSubscription(username)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        messageService.get("user.not.found.with.sm", username)
+                ));
+
+        // Check if user is active
+        if (!user.getIsActive() || user.isDeleted()) {
+            throw new UserIsNotActiveException(messageService.get("user.is.blocked"));
+        }
+
+        // Check subscription expiration
+        if (user.getNextPaymentDate() != null && user.getNextPaymentDate().isBefore(LocalDateTime.now())) {
+            if (user.getIsActive()) {
+                user.setIsActive(false);
+                userRepository.save(user);
+            }
+            throw new UserIsNotActiveException(messageService.get("subscription.is.expire"));
+        }
+
+        // Get or create session
+        String sessionId;
+        List<UserSession> activeSessions = sessionService.listActiveSessions(user.getUserId());
+        
+        if (activeSessions.isEmpty()) {
+            // Create new session if no active session exists
+            String ip = httpReq.getRemoteAddr();
+            String ua = httpReq.getHeader("User-Agent");
+            sessionId = sessionService.createSession(user.getUserId(), ip, ua);
+        } else {
+            // Use existing session and update last active
+            UserSession activeSession = activeSessions.getFirst();
+            sessionId = activeSession.getSessionId();
+            sessionService.updateLastActive(sessionId);
+        }
+
+        // Load user details using UserDetailsService
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        // Generate new tokens
+        Subscription subscription = user.getSubscription();
+        List<String> roles = getRoles(user);
+        List<String> rolePermissions = getPermissions(user);
+        List<String> subscriptionPermissions = getActivePermissionNames(subscription);
+
+        // Create authentication object
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Generate new tokens
+        Result result = getResult(authentication, sessionId, roles, rolePermissions, user);
+
+        log.debug("✅ Refresh token successful for user: {}", username);
+
+        return buildJwtResponse(result.accessToken(), result.refreshToken(), user, subscription, 
+                subscriptionPermissions, rolePermissions, roles, sessionId);
+    }
+
     public String logout(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return HttpStatus.BAD_REQUEST.name();
-        String token = authHeader.substring(7);
-        String sessionId = jwtUtils.extractSessionId(token);
-        sessionService.logoutSession(sessionId);
-        return HttpStatus.OK.name();
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return HttpStatus.BAD_REQUEST.name();
+        }
+        
+        try {
+            String token = authHeader.substring(7).trim();
+            if (!jwtUtils.validateToken(token)) {
+                return HttpStatus.UNAUTHORIZED.name();
+            }
+            
+            String sessionId = jwtUtils.extractSessionId(token);
+            if (sessionId != null) {
+                sessionService.logoutSession(sessionId);
+            }
+            
+            SecurityContextHolder.clearContext();
+            
+            return HttpStatus.OK.name();
+        } catch (Exception e) {
+            log.error("Error during logout: {}", e.getMessage(), e);
+            return HttpStatus.INTERNAL_SERVER_ERROR.name();
+        }
     }
 }

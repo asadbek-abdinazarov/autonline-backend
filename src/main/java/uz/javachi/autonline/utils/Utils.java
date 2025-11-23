@@ -13,10 +13,11 @@ import java.util.List;
 import java.util.Set;
 
 public class Utils {
-    public static JwtResponse buildJwtResponse(String token, User user, Subscription subscription, List<String> subscriptionPermissions, List<String> rolePermissions, List<String> roles, String sessionId) {
+    public static JwtResponse buildJwtResponse(String accessToken,String refreshToken, User user, Subscription subscription, List<String> subscriptionPermissions, List<String> rolePermissions, List<String> roles, String sessionId) {
         return JwtResponse.builder()
                 .id(user.getUserId())
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .username(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
                 .fullName(user.getFullName())

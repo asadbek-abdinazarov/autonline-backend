@@ -31,6 +31,9 @@ public class CustomUserDetails implements UserDetails {
     private LocalDateTime nextPaymentDate;
     private Set<Role> roles;
 
+    // Cached authorities to avoid recomputation
+    private transient Collection<? extends GrantedAuthority> cachedAuthorities;
+
     public static CustomUserDetails fromUser(User user) {
         return CustomUserDetails.builder()
                 .userId(user.getUserId())
@@ -45,25 +48,44 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getGrantedAuthorities(roles);
+        // Lazy initialization with caching
+        if (cachedAuthorities == null) {
+            cachedAuthorities = getGrantedAuthorities(roles);
+        }
+        return cachedAuthorities;
+    }
+
+    /**
+     * Invalidates the cached authorities (call this if roles are updated)
+     */
+    public void invalidateAuthoritiesCache() {
+        this.cachedAuthorities = null;
     }
 
     static Collection<? extends GrantedAuthority> getGrantedAuthorities(Set<Role> roles) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        if (roles != null) {
-            for (Role role : roles) {
-                if (role.getIsActive() && !role.isDeleted()) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_%s".formatted(role.getName().toUpperCase())));
-                    if (role.getPermissions() != null) {
-                        for (Permission permission : role.getPermissions()) {
-                            if (permission.getIsActive() && !permission.isDeleted()) {
-                                authorities.add(new SimpleGrantedAuthority(permission.getName().toUpperCase()));
-                            }
-                        }
-                    }
-                }
-            }
+        if (roles == null || roles.isEmpty()) {
+            return List.of();
         }
+
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        
+        // Use streams for better performance and readability
+        roles.stream()
+                .filter(role -> role.getIsActive() && !role.isDeleted())
+                .forEach(role -> {
+                    // Add role authority
+                    authorities.add(new SimpleGrantedAuthority("ROLE_%s".formatted(role.getName().toUpperCase())));
+                    
+                    // Add permission authorities
+                    if (role.getPermissions() != null) {
+                        role.getPermissions().stream()
+                                .filter(permission -> permission.getIsActive() && !permission.isDeleted())
+                                .forEach(permission -> 
+                                    authorities.add(new SimpleGrantedAuthority(permission.getName().toUpperCase()))
+                                );
+                    }
+                });
+        
         return authorities;
     }
 

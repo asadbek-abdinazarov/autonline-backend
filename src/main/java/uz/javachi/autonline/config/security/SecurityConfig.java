@@ -2,6 +2,7 @@ package uz.javachi.autonline.config.security;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -40,10 +41,24 @@ public class SecurityConfig implements WebMvcConfigurer {
     private final AuthEntryPointJwt unauthorizedHandler;
     private final RateLimitInterceptor rateLimitInterceptor;
 
+    @Value("${app.security.bcrypt.strength:12}")
+    private int bcryptStrength;
+
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:3001,http://localhost:8080}")
+    private String allowedOrigins;
+
+    @Value("${app.cors.allowed-methods:GET,POST,PATCH,PUT,DELETE,OPTIONS}")
+    private String allowedMethods;
+
+    @Value("${app.cors.allowed-headers:Authorization,Content-Type,X-Requested-With}")
+    private String allowedHeaders;
+
+    @Value("${app.cors.max-age:3600}")
+    private long corsMaxAge;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(bcryptStrength);
     }
 
     @Bean
@@ -77,9 +92,14 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
                         .contentTypeOptions(contentTypeOptions -> {
                         })
-                        .httpStrictTransportSecurity(hstsConfig -> hstsConfig
-                                .maxAgeInSeconds(31536000)
-                        )
+                        .httpStrictTransportSecurity(hstsConfig -> {
+                            hstsConfig.maxAgeInSeconds(31536000);
+                            hstsConfig.includeSubDomains(true);
+                            hstsConfig.preload(true);
+                        })
+                        .addHeaderWriter((request, response) -> {
+                            response.setHeader("Referrer-Policy", "same-origin");
+                        })
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -90,11 +110,24 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:3001", "http://localhost:8080"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+
+        // Parse allowed origins from comma-separated string
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        configuration.setAllowedOriginPatterns(origins);
+
+        // Parse allowed methods
+        List<String> methods = Arrays.asList(allowedMethods.split(","));
+        configuration.setAllowedMethods(methods);
+
+        // Parse allowed headers
+        List<String> headers = Arrays.asList(allowedHeaders.split(","));
+        configuration.setAllowedHeaders(headers);
+
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+        configuration.setMaxAge(corsMaxAge);
+
+        // Add exposed headers if needed
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
