@@ -108,6 +108,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (debugLogging) {
                     log.debug("JWT token validation failed for path: {}", requestPath);
                 }
+                // Check if token is specifically expired (not just invalid)
+                if (jwtUtils.isTokenExpiredException(jwt)) {
+                    // Set attribute to indicate token is expired
+                    request.setAttribute("TOKEN_EXPIRED", true);
+                    if (debugLogging) {
+                        log.debug("Token is expired, setting TOKEN_EXPIRED attribute");
+                    }
+                }
                 filterChain.doFilter(request, response);
                 return;
             }

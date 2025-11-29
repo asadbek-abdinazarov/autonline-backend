@@ -259,6 +259,32 @@ public class JwtUtils {
     }
 
     /**
+     * Checks if the token is specifically expired (throws ExpiredJwtException)
+     * This method distinguishes between expired tokens and other invalid tokens
+     * @param token the token to check
+     * @return true if the token is expired, false otherwise
+     */
+    public Boolean isTokenExpiredException(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
+            // If parsing succeeds, token is not expired
+            return false;
+        } catch (ExpiredJwtException e) {
+            // Token is specifically expired
+            return true;
+        } catch (Exception e) {
+            // Other exceptions mean token is invalid but not necessarily expired
+            return false;
+        }
+    }
+
+    /**
      * Clears the claims cache (useful for testing or memory management)
      */
     public void clearCache() {

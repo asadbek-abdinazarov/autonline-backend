@@ -18,8 +18,8 @@ app:
   jwt:
     secret: ${A_JWT_SECRET}
     expiration: ${A_JWT_EXPIRATION} # 24 hours in milliseconds
-accepted:
-  origin: ${A_ACCEPTED_ORIGIN}
+    refresh:
+      expiration: ${A_JWT_REFRESH_EXPIRATION:604800000} # 7 days in milliseconds
 # Logging Configuration
 logging:
   level:

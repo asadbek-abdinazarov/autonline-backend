@@ -27,6 +27,11 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Failed", "message", ex.getMessage()));
     }
 
+    @ExceptionHandler({TokenException.class})
+    public ResponseEntity<Map<String, String>> handleTokenException(TokenException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "REFRESH_TOKEN_INVALID", "message", ex.getMessage()));
+    }
+
     @ExceptionHandler({UserBlockedOrDeletedException.class})
     public ResponseEntity<Map<String, String>> handleUserBlockedOrDeletedException(RuntimeException ex) {
         return ResponseEntity.internalServerError()

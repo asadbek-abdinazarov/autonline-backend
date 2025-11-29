@@ -24,9 +24,6 @@ public class SessionController {
 
     @DeleteMapping("/{sessionId}")
     public ResponseEntity<?> revoke(@PathVariable String sessionId) {
-
-//        Integer userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not authenticated"));
-
         sessionService.revokeSession(sessionId);
         return ResponseEntity.ok().build();
     }

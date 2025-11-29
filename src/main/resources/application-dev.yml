@@ -8,16 +8,18 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: ${A_HIBERNATE_DDL_AUTO:update}
-    show-sql: false
+#    show-sql: true
     properties:
       hibernate:
-        format_sql: false
+        format_sql: true
         use_sql_comments: false
 # JWT Configuration
 app:
   jwt:
     secret: ${A_JWT_SECRET:feD65K4oszTmBRZIpO94QVgrqFaByXh72z7cENrVRDIqama4jKsdBAjA14StehYaH0D35Hen5skXYPmhNfY62ZDM1Klo24Jp1pZmTBH6qxsLfFYOSiScncyj9r8iiprRpIHFSVSSbF14CmVxJFdYHHXxDZQQrIA77PwKYFV0NoErQLIo0CZoISDFd7NxecmWmHlqRWSW}
-    expiration: ${A_JWT_EXPIRATION:8640000} # 24 hours in milliseconds
+    expiration: ${A_JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+    refresh:
+      expiration: ${A_JWT_REFRESH_EXPIRATION:604800000} # 7 days in milliseconds
 
 # Logging Configuration
 logging:
