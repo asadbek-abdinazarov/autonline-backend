@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uz.javachi.autonline.dto.request.TeacherRegisterStudentRequest;
+import uz.javachi.autonline.dto.response.StudentsResponseToTeacherDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,11 +20,11 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users", 
-       uniqueConstraints = {
-           @UniqueConstraint(columnNames = "username"),
-           @UniqueConstraint(columnNames = "phone_number")
-       })
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "username"),
+                @UniqueConstraint(columnNames = "phone_number")
+        })
 public class User {
 
     @Id
@@ -54,14 +56,22 @@ public class User {
     @Column(name = "next_payment_date")
     private LocalDateTime nextPaymentDate;
 
+    @OneToMany
+    @JoinTable(
+            name = "teacher_students",
+            joinColumns = @JoinColumn(name = "teacher_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id", unique = true)
+    )
+    private List<User> students;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentHistory> paymentHistory;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
 
@@ -115,4 +125,32 @@ public class User {
     public boolean isAccountActive() {
         return !this.isActive || this.isDeleted();
     }
+
+
+    public static StudentsResponseToTeacherDTO studentToDtoForTeacher(User user) {
+        return StudentsResponseToTeacherDTO.builder()
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .nextPaymentDate(user.getNextPaymentDate())
+                .subscription(Subscription.subscriptionToDto(user.getSubscription()))
+                .isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+
+    }
+
+
+    public static User studentToUserForTeacher(TeacherRegisterStudentRequest dto) {
+        return User.builder()
+                .fullName(dto.getFullName())
+                .username(dto.getUsername())
+                .phoneNumber(dto.getPhoneNumber())
+                .nextPaymentDate(dto.getNextPaymentDate())
+                .build();
+
+    }
+
 }

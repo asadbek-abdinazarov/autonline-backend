@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,18 @@ public class Subscription {
     @Size(min = 2, max = 50, message = "User access name must be between 2 and 50 characters")
     @Column(name = "name", nullable = false, unique = true, length = 50)
     private String name;
+
+    private String defName;
+
+    private String description;
+
+    private Double price;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> features;
+
+    @Column(name = "buy_text", columnDefinition = "TEXT")
+    private String buyText;
 
     @Builder.Default
     @Column(name = "is_active", nullable = false)
@@ -81,6 +94,11 @@ public class Subscription {
         return SubscriptionResponseDTO.builder()
                 .subscriptionId(subscription.getSubscriptionId())
                 .name(subscription.getName())
+                .defName(subscription.getDefName())
+                .features(subscription.getFeatures())
+                .price(subscription.getPrice())
+                .buyText(subscription.getBuyText())
+                .description(subscription.getDescription())
                 .permissions(subscription.getPermissions()
                         .stream().map(Permission::permissionToDto)
                         .collect(Collectors.toSet()))

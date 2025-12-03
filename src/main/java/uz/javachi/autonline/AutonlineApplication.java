@@ -13,6 +13,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import uz.javachi.autonline.config.LocaleCopyingTaskDecorator;
 
+import static uz.javachi.autonline.utils.Utils.urlEncoder;
+
 @Slf4j
 @EnableAsync
 @SpringBootApplication

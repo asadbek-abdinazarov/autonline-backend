@@ -8,6 +8,8 @@ import uz.javachi.autonline.model.Role;
 import uz.javachi.autonline.model.Subscription;
 import uz.javachi.autonline.model.User;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -66,5 +68,8 @@ public class Utils {
                 .filter(role -> role.getIsActive() && !role.isDeleted())
                 .map(Role::getName)
                 .toList();
+    }
+    public static String urlEncoder(String input) {
+        return URLEncoder.encode(input, StandardCharsets.UTF_8);
     }
 }

@@ -79,8 +79,9 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers("/api/v1/news/**").permitAll()
                                 .requestMatchers("/api/v1/statistic/**").permitAll()
+                                .requestMatchers("/api/v1/subscription/**").permitAll()
+                                .requestMatchers("/api/v1/students/**").permitAll()
                                 .requestMatchers("/actuator/**").permitAll()
-                                .requestMatchers("/h2-console/**").hasRole("ADMIN")
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .requestMatchers("/api/v1/lesson/**",
                                         "/api/v1/payment-history/**",

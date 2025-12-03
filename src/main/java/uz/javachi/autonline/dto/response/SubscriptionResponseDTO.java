@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -13,6 +14,16 @@ public class SubscriptionResponseDTO {
     private Integer subscriptionId;
 
     private String name;
+
+    private String defName;
+
+    private String description;
+
+    private Double price;
+
+    private String buyText;
+
+    private List<String> features;
 
     private Boolean isActive;
 

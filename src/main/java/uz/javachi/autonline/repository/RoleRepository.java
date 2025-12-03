@@ -12,7 +12,10 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Integer> {
 
-    Optional<Role> findByName(String name);
+    @Query(nativeQuery = true,value = """
+                SELECT * FROM roles where name = :name AND deleted_at IS NULL
+            """)
+    Optional<Role> findByName(@Param("name") String name);
 
     @Query("SELECT r FROM Role r WHERE r.name = :name AND r.isActive = true AND r.deletedAt IS NULL")
     Optional<Role> findActiveByName(@Param("name") String name);

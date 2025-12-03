@@ -32,7 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Value("${app.logging.debug:false}")
     private boolean debugLogging;
 
-    // Public endpoints that don't require authentication
     private static final Set<String> PUBLIC_PATHS = Set.of(
             "/api/v1/auth/",
             "/api/v1/public/",
@@ -40,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/ws/",
             "/api/v1/news/",
             "/api/v1/statistic/",
+            "/api/v1/subscription",
             "/actuator/",
             "/swagger-ui/",
             "/v3/api-docs/"
