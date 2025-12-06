@@ -16,8 +16,40 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username")
+    @Query("SELECT u FROM " +
+            "User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username")
     Optional<User> findByUsername(@Param("username") String username);
+
+    @Query(value = """
+        SELECT u.*, s.subscription_id
+        FROM users u
+        JOIN teacher_students ts ON ts.student_id = u.user_id
+        JOIN user_subscriptions us ON us.user_id = u.user_id
+        LEFT JOIN subscription s ON s.subscription_id = us.subscription_id
+        WHERE ts.teacher_id = :teacherId
+          AND u.deleted_at IS NULL
+          AND u.is_active = TRUE
+          AND (
+                LOWER(u.username) LIKE LOWER(CONCAT('%', :value, '%'))
+                OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :value, '%'))
+                OR u.phone_number LIKE CONCAT('%', :value, '%')
+              )
+        """,
+            countQuery = """
+        SELECT COUNT(*)
+        FROM users u
+        JOIN teacher_students ts ON ts.student_id = u.user_id
+        WHERE ts.teacher_id = :teacherId
+          AND u.deleted_at IS NULL
+          AND u.is_active = TRUE
+          AND (
+                LOWER(u.username) LIKE LOWER(CONCAT('%', :value, '%'))
+                OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :value, '%'))
+                OR u.phone_number LIKE CONCAT('%', :value, '%')
+              )
+        """,
+            nativeQuery = true)
+    Page<User> searchUserPageable(Integer teacherId, String value, Pageable pageable);
 
     @Query("""
                 SELECT s FROM User t

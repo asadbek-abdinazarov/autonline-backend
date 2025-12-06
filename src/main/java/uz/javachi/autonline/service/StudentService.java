@@ -137,4 +137,16 @@ public class StudentService {
         return User.studentToDtoForTeacher(student);
     }
 
+    @Transactional(readOnly = true)
+    public Page<StudentsResponseToTeacherDTO> searchUserPaged(String value, int page, int size) {
+
+        Integer teacherId = SecurityUtils.getCurrentUserIdOrThrow();
+        value = value.trim();
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("full_name", "phone_number", "username").ascending());
+
+        return userRepository.searchUserPageable(teacherId, value, pageable)
+                .map(User::studentToDtoForTeacher);
+    }
+
 }

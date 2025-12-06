@@ -39,4 +39,13 @@ public class StudentController {
     }
 
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<StudentsResponseToTeacherDTO>> searchUser(
+            @RequestParam String value,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(studentService.searchUserPaged(value, page, size));
+    }
+
 }

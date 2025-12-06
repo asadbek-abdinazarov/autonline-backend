@@ -8,7 +8,9 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import uz.javachi.autonline.dto.request.TeacherRegisterStudentRequest;
+import uz.javachi.autonline.dto.response.SearchResponseUserDTO;
 import uz.javachi.autonline.dto.response.StudentsResponseToTeacherDTO;
+import uz.javachi.autonline.dto.response.UserResponseDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -126,6 +128,31 @@ public class User {
         return !this.isActive || this.isDeleted();
     }
 
+    public static UserResponseDTO toDto(User user) {
+        return UserResponseDTO.builder()
+                .id(user.getUserId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .nextPaymentDate(user.getNextPaymentDate())
+                .subscription(Subscription.subscriptionToDto(user.getSubscription()))
+                .roles(user.getRoles().stream().map(Role::rolesToDto).toList())
+                .paymentHistory(user.getPaymentHistory().stream().map(PaymentHistory::toDto).toList())
+                .phoneNumber(user.getPhoneNumber())
+                .isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+    }
+
+    public static SearchResponseUserDTO searchUserDTO(User user) {
+        return SearchResponseUserDTO.builder()
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .isActive(user.getIsActive())
+                .build();
+    }
 
     public static StudentsResponseToTeacherDTO studentToDtoForTeacher(User user) {
         return StudentsResponseToTeacherDTO.builder()
