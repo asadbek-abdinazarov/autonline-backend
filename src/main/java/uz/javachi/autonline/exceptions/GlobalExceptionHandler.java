@@ -44,6 +44,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Role", "message", ex.getMessage()));
     }
 
+    @ExceptionHandler(UserManyStudentsException.class)
+    public ResponseEntity<Map<String, String>> handleUserManyStudentsException(UserManyStudentsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "Teacher Students", "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         List<String> messages = ex.getBindingResult()

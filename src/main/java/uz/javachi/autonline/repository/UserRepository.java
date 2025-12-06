@@ -20,11 +20,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(@Param("username") String username);
 
     @Query("""
-                SELECT u FROM User u
-                LEFT JOIN FETCH u.students
-                WHERE u.userId = :id
+                SELECT s FROM User t
+                JOIN t.students s
+                WHERE t.userId = :teacherId
+                    AND s.deletedAt IS NULL
+                    AND s.isActive = true
             """)
-    Optional<User> findTeacherWithStudents(@Param("id") Integer id);
+    Page<User> findActiveStudentsByTeacher(@Param("teacherId") Integer teacherId, Pageable pageable);
 
 
     @Query(value = """
@@ -88,8 +90,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
                       LEFT JOIN subscription s on s.subscription_id = us.subscription_id
                       WHERE ts.teacher_id = :teacherId
                         AND ts.student_id = :studentId
-                        AND s.is_active = true
-                        AND s.deleted_at IS NULL
             """, nativeQuery = true)
     Optional<User> findStudentOfTeacher(Integer teacherId, Integer studentId);
 }

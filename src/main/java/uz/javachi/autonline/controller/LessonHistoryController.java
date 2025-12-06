@@ -21,6 +21,12 @@ public class LessonHistoryController {
         return ResponseEntity.ok(userLessonStatisticResponseDTO);
     }
 
+    @GetMapping("/student/{userId}")
+    public ResponseEntity<UserLessonStatisticResponseDTO> getStudentLessonHistoryByUserId(@PathVariable Integer userId) throws Exception {
+        UserLessonStatisticResponseDTO userLessonStatisticResponseDTO = statisticService.getUserLessonHistory(userId).get();
+        return ResponseEntity.ok(userLessonStatisticResponseDTO);
+    }
+
     @PostMapping("/add")
     private ResponseEntity<?> createLessonHistory(@RequestBody LessonHistoryDTO lessonHistoryDTO) {
         return lessonHistoryService.createLessonHistory(lessonHistoryDTO);

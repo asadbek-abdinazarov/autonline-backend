@@ -49,6 +49,8 @@ public class Subscription {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    private Integer studentLimit;
+
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "subscription_permissions",

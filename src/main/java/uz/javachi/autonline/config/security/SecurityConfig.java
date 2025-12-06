@@ -80,13 +80,13 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/api/v1/news/**").permitAll()
                                 .requestMatchers("/api/v1/statistic/**").permitAll()
                                 .requestMatchers("/api/v1/subscription/**").permitAll()
-                                .requestMatchers("/api/v1/students/**").permitAll()
+                                .requestMatchers("/api/v1/students/**").hasAnyRole("TEACHER", "ADMIN")
                                 .requestMatchers("/actuator/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .requestMatchers("/api/v1/lesson/**",
                                         "/api/v1/payment-history/**",
                                         "/api/v1/lesson-history/**",
-                                        "/api/v1/random-quiz/**").hasAnyRole("USER", "ADMIN")
+                                        "/api/v1/random-quiz/**").hasAnyRole("USER", "ADMIN", "TEACHER")
                                 .anyRequest().authenticated()
                 )
                 .headers(headers -> headers

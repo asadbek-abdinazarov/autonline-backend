@@ -1,14 +1,13 @@
 package uz.javachi.autonline.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.javachi.autonline.dto.request.TeacherRegisterStudentRequest;
 import uz.javachi.autonline.dto.response.StudentsResponseToTeacherDTO;
+import uz.javachi.autonline.exceptions.UserManyStudentsException;
 import uz.javachi.autonline.service.StudentService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/students")
@@ -17,25 +16,24 @@ public class StudentController {
     private final StudentService studentService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
-    public ResponseEntity<List<StudentsResponseToTeacherDTO>> getTeacherAllStudent() {
-        return ResponseEntity.ok(studentService.getTeacherAllStudent());
+    public ResponseEntity<Page<StudentsResponseToTeacherDTO>> getTeacherAllStudent(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(studentService.getTeacherAllStudent(page, size));
     }
 
     @GetMapping("/by-id/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<StudentsResponseToTeacherDTO> getStudentById(@PathVariable Integer id) {
         return ResponseEntity.ok(studentService.getStudentById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
-    public ResponseEntity<StudentsResponseToTeacherDTO> createStudentToTeacher(TeacherRegisterStudentRequest dto) {
+    public ResponseEntity<StudentsResponseToTeacherDTO> createStudentToTeacher(@RequestBody TeacherRegisterStudentRequest dto) throws UserManyStudentsException {
         return ResponseEntity.ok(studentService.createStudentToTeacher(dto));
     }
 
     @DeleteMapping("/by-id/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<StudentsResponseToTeacherDTO> deleteStudentById(@PathVariable Integer id) {
         return ResponseEntity.ok(studentService.deleteStudentById(id));
     }

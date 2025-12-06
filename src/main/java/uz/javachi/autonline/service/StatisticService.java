@@ -14,7 +14,6 @@ import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.utils.SecurityUtils;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -25,7 +24,6 @@ public class StatisticService {
     private final PaymentHistoryRepository paymentHistoryRepository;
     private final QuestionRepository questionRepository;
     private final LessonHistoryRepository lessonHistoryRepository;
-    private final MessageService messageService;
 
     @Async("applicationTaskExecutor")
     public CompletableFuture<StatisticResponseDTO> getStatistic() {
@@ -82,5 +80,35 @@ public class StatisticService {
             return dto;
         });
 
+    }
+
+    @Async("applicationTaskExecutor")
+    public CompletableFuture<UserLessonStatisticResponseDTO> getUserLessonHistory(Integer userId) {
+        String lang = LocaleContextHolder.getLocale().getLanguage();
+
+        CompletableFuture<Long> totalTests = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.countByUserId(userId));
+
+        CompletableFuture<Long> passed = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.countByUserIdAndPercentageHigher(userId));
+
+        CompletableFuture<Integer> averageScore = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.findByUserIdAndAvg(userId));
+
+        CompletableFuture<Integer> successRate = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.findByUserIdAndSuccessRate(userId));
+
+        CompletableFuture<List<LessonHistoryProjection>> lessonHistories = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.getAllByUserId(userId, lang));
+
+        return CompletableFuture.allOf(totalTests, passed, averageScore, successRate, lessonHistories).thenApply(v -> {
+            UserLessonStatisticResponseDTO dto = new UserLessonStatisticResponseDTO();
+
+            try {
+                dto.setTotalTests(totalTests.get());
+                dto.setPassed(passed.get());
+                dto.setAverageScore(averageScore.get());
+                dto.setSuccessRate(successRate.get());
+                dto.setLessonHistories(lessonHistories.get());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return dto;
+        });
     }
 }

@@ -56,7 +56,7 @@ public class User {
     @Column(name = "next_payment_date")
     private LocalDateTime nextPaymentDate;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "teacher_students",
             joinColumns = @JoinColumn(name = "teacher_id"),
