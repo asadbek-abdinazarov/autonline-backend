@@ -94,6 +94,11 @@ public class AdminService {
             throw new IllegalStateException(messageService.get("user.already.has.role", user.getUsername(), role.getName()));
         }
 
+        String isFree = subscriptionRepository.isUserHaveSubscription(userId);
+        if (isFree.equals("FREE")) {
+            throw new IllegalStateException(messageService.get("user.with.free.subscription.cannot.add.role"));
+        }
+
         user.getRoles().add(role);
         userRepository.saveAndFlush(user);
         return messageService.get("role.success.added.to.user", role.getName(), user.getUsername());

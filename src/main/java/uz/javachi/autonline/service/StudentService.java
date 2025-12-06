@@ -31,6 +31,7 @@ public class StudentService {
     private final PasswordEncoder passwordEncoder;
     private final UserBlockService userBlockService;
     private final SubscriptionRepository subscriptionRepository;
+    private final MessageService messageService;
 
     @Transactional(readOnly = true)
     public Page<StudentsResponseToTeacherDTO> getTeacherAllStudent(int page, int size) {
@@ -86,7 +87,7 @@ public class StudentService {
                 case "BASIC" -> subscriptionRepository.findByName("STUDENT_BASIC").ifPresent(student::setSubscription);
                 case "PRO" -> subscriptionRepository.findByName("STUDENT_PRO").ifPresent(student::setSubscription);
                 case "FULL" -> subscriptionRepository.findByName("STUDENT_FULL").ifPresent(student::setSubscription);
-                default -> throw new RuntimeException("Invalid subscription mapping");
+                default -> throw new UserManyStudentsException(messageService.get("teacher.free.subscription"));
             }
 
             userRepository.save(student);

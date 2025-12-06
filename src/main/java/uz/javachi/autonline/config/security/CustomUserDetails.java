@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import uz.javachi.autonline.model.Permission;
 import uz.javachi.autonline.model.Role;
 import uz.javachi.autonline.model.User;
 
