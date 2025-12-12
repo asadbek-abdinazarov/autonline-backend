@@ -30,7 +30,6 @@ public class AutonlineApplication {
 
     @PostConstruct
     public void init() {
-//        autoSaveService.saveQuestion();
         log.info("✅Dastur ishga tushirildi...");
     }
 

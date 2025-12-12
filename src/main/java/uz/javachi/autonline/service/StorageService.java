@@ -2,6 +2,7 @@ package uz.javachi.autonline.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -32,17 +34,18 @@ public class StorageService {
     }
 
 
-    public String uploadFile(MultipartFile file, String folder) {
+    @Async("applicationTaskExecutor")
+    public CompletableFuture<String> uploadFile(MultipartFile file, String folder) {
 
         StringBuilder key = new StringBuilder();
-        key.append(key)
-                .append(folder)
+        key.append(folder)
                 .append("/")
                 .append(UUID.randomUUID())
                 .append("_")
                 .append(file.getOriginalFilename());
 
         String resultKey = key.toString();
+
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(resultKey)
@@ -56,7 +59,7 @@ public class StorageService {
             throw new RuntimeException(e);
         }
 
-        return resultKey;
+        return CompletableFuture.completedFuture(resultKey);
     }
 
     public void deleteFile(String key) {

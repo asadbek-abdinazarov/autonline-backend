@@ -22,7 +22,7 @@ import uz.javachi.autonline.utils.SecurityUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static uz.javachi.autonline.DefaultValues.DEFAULT_ROLE;
+import static uz.javachi.autonline.DefaultValues.DEFAULT_USER_ROLE;
 
 @Service
 @RequiredArgsConstructor
@@ -116,8 +116,8 @@ public class AdminService {
         Role role = getRoleOrThrow(roleId);
         validateRoleActive(role);
 
-        if (role.getName().equals(DEFAULT_ROLE)) {
-            throw new RuntimeException(messageService.get("default.user.role.cant.remove", DEFAULT_ROLE));
+        if (role.getName().equals(DEFAULT_USER_ROLE)) {
+            throw new RuntimeException(messageService.get("default.user.role.cant.remove", DEFAULT_USER_ROLE));
         }
 
         if (!userHasRole(user, roleId)) {

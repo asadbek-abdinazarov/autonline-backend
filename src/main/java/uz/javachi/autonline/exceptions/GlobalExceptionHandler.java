@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +25,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({RuntimeException.class})
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity.internalServerError()
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler({AuthorizationDeniedException.class})
+    public ResponseEntity<Map<String, String>> handleAccessDeniedException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", "Authorization Denied", "message", ex.getMessage()));
     }
 
     @ExceptionHandler({TokenException.class})

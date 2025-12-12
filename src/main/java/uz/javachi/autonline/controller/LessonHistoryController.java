@@ -16,14 +16,18 @@ public class LessonHistoryController {
     private final StatisticService statisticService;
 
     @GetMapping
-    public ResponseEntity<UserLessonStatisticResponseDTO> getUserLessonHistory() throws Exception {
-        UserLessonStatisticResponseDTO userLessonStatisticResponseDTO = statisticService.getUserLessonHistory().get();
-        return ResponseEntity.ok(userLessonStatisticResponseDTO);
+    public ResponseEntity<UserLessonStatisticResponseDTO> getUserLessonHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) throws Exception {
+        return ResponseEntity.ok(statisticService.getUserLessonHistory(page, size).get());
     }
 
     @GetMapping("/student/{userId}")
-    public ResponseEntity<UserLessonStatisticResponseDTO> getStudentLessonHistoryByUserId(@PathVariable Integer userId) throws Exception {
-        UserLessonStatisticResponseDTO userLessonStatisticResponseDTO = statisticService.getUserLessonHistory(userId).get();
+    public ResponseEntity<UserLessonStatisticResponseDTO> getStudentLessonHistoryByUserId(@PathVariable Integer userId,
+                                                                                          @RequestParam(defaultValue = "0") int page,
+                                                                                          @RequestParam(defaultValue = "10") int size) throws Exception {
+        UserLessonStatisticResponseDTO userLessonStatisticResponseDTO = statisticService.getUserLessonHistory(userId, page, size).get();
         return ResponseEntity.ok(userLessonStatisticResponseDTO);
     }
 

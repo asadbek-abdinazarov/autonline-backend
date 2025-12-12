@@ -2,26 +2,21 @@ package uz.javachi.autonline.config.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.exceptions.UserBlockedOrDeletedException;
-import uz.javachi.autonline.model.Role;
 import uz.javachi.autonline.model.User;
 import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.service.MessageService;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import static uz.javachi.autonline.config.security.CustomUserDetails.getGrantedAuthorities;
 
 @Service("customUserDetailsServiceIml")
 @RequiredArgsConstructor
@@ -76,6 +71,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 
+        Hibernate.initialize(user.getRoles());
+        user.getRoles().forEach(role -> Hibernate.initialize(role.getPermissions()));
+
+        Hibernate.initialize(user.getSubscription());
+        if (user.getSubscription() != null) {
+            Hibernate.initialize(user.getSubscription().getPermissions());
+        }
+
         // Check if user is active and not deleted
         if (!user.getIsActive() || user.isDeleted()) {
             String fMessage = "User %s is inactive or deleted!".formatted(username);
@@ -120,39 +123,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return log.isDebugEnabled();
     }
 
-    @Transactional(readOnly = true)
-    public UserDetails loadUserById(Integer id) throws UsernameNotFoundException {
-        if (debugLogging()) {
-            log.debug("Loading user by ID: {}", id);
-        }
-
-        User user = userRepository.findByIdWithRoles(id).orElseThrow(
-                () -> new UsernameNotFoundException("User not found with id: " + id)
-        );
-
-        if (!user.getIsActive() || user.isDeleted()) {
-            log.warn("User {} is inactive or deleted", user.getUsername());
-            // Remove from cache if exists
-            if (cacheEnabled && user.getUsername() != null) {
-                userDetailsCache.remove(user.getUsername());
-            }
-            throw new UsernameNotFoundException("Invalid credentials");
-        }
-
-        UserDetails userDetails = CustomUserDetails.fromUser(user);
-
-        // Cache by username if available
-        if (cacheEnabled && user.getUsername() != null) {
-            userDetailsCache.put(user.getUsername(), new CachedUserDetails(userDetails));
-        }
-
-        if (debugLogging()) {
-            log.debug("Found user by ID: {} -> Username: {}", id, user.getUsername());
-        }
-
-        return userDetails;
-    }
-
     /**
      * Clears the user details cache (useful when user is updated)
      */
@@ -169,9 +139,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         userDetailsCache.clear();
     }
 
-    @SuppressWarnings("unused")
-    private Collection<? extends GrantedAuthority> getAuthorities(Set<Role> roles) {
-        return getGrantedAuthorities(roles);
-    }
 }
 

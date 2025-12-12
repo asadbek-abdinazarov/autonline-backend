@@ -18,7 +18,7 @@ public class RandomQuizController {
     private final LessonService lessonService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAuthority('VIEW_RANDOM')")
     public ResponseEntity<LessonResponseDTO> getRandomQuiz(@RequestParam Integer interval) {
         return lessonService.getRandomQuiz(interval);
     }

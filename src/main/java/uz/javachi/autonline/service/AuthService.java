@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static uz.javachi.autonline.DefaultValues.DEFAULT_ROLE;
+import static uz.javachi.autonline.DefaultValues.DEFAULT_USER_ROLE;
 import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
 import static uz.javachi.autonline.utils.Utils.*;
 
@@ -188,8 +188,8 @@ public class AuthService {
     }
 
     private Role getRoleOrThrow() {
-        return roleRepository.findByName(DEFAULT_ROLE)
-                .orElseThrow(() -> new CustomRoleNotFoundException("Rol topilmadi: %s".formatted(DEFAULT_ROLE)));
+        return roleRepository.findByName(DEFAULT_USER_ROLE)
+                .orElseThrow(() -> new CustomRoleNotFoundException("Rol topilmadi: %s".formatted(DEFAULT_USER_ROLE)));
     }
 
 

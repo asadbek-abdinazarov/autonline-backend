@@ -1,11 +1,13 @@
 package uz.javachi.autonline.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import uz.javachi.autonline.service.StorageService;
 
 import java.net.URLConnection;
@@ -20,8 +22,12 @@ public class StorageController {
     @PostMapping("/upload")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<String> upload(@RequestParam MultipartFile file) {
-        String key = storageService.uploadFile(file, "images");
-        return ResponseEntity.ok(key);
+        try {
+            String key = storageService.uploadFile(file, "images").get();
+            return ResponseEntity.ok(key);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/file")
@@ -36,7 +42,6 @@ public class StorageController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(fileData);
     }
-
 
 
     @DeleteMapping("/delete")

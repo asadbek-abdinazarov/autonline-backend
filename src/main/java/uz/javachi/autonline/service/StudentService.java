@@ -21,6 +21,9 @@ import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.utils.SecurityUtils;
 
 import java.util.HashSet;
+import java.util.List;
+
+import static uz.javachi.autonline.DefaultValues.*;
 
 @Slf4j
 @Service
@@ -28,10 +31,10 @@ import java.util.HashSet;
 public class StudentService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final MessageService messageService;
     private final PasswordEncoder passwordEncoder;
     private final UserBlockService userBlockService;
     private final SubscriptionRepository subscriptionRepository;
-    private final MessageService messageService;
 
     @Transactional(readOnly = true)
     public Page<StudentsResponseToTeacherDTO> getTeacherAllStudent(int page, int size) {
@@ -39,10 +42,10 @@ public class StudentService {
         Integer currentUserId = SecurityUtils.getCurrentUserIdOrThrow();
 
         User teacher = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+                .orElseThrow(() -> new UsernameNotFoundException(messageService.get("user.not.found")));
 
-        if (teacher.hasRole("TEACHER")) {
-            throw new RuntimeException("Access denied, you are not a teacher!");
+        if (teacher.hasRole(ROLE_TEACHER)) {
+            throw new RuntimeException(messageService.get("you.are.not.teacher"));
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
@@ -59,19 +62,21 @@ public class StudentService {
             Integer teacherId = SecurityUtils.getCurrentUserIdOrThrow();
 
             if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-                throw new RuntimeException("Passwords do not match!");
+                throw new RuntimeException(messageService.get("password.not.match"));
             }
 
             User teacher = userRepository.findById(teacherId)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+                    .orElseThrow(() -> new UsernameNotFoundException(messageService.get("user.not.found")));
 
-            if (teacher.hasRole("TEACHER")) {
-                throw new RuntimeException("Access denied, you are not a teacher!");
+            if (teacher.hasRole(ROLE_TEACHER)) {
+                throw new RuntimeException(messageService.get("you.are.not.teacher"));
             }
             Subscription subscription = teacher.getSubscription();
 
-            if (teacher.getStudents().size() > subscription.getStudentLimit()) {
-                throw new UserManyStudentsException("You have many students already, please contact with admin!");
+            Integer studentLimit = subscription.getStudentLimit();
+            List<User> students = teacher.getStudents();
+            if (students.size() >= studentLimit) {
+                throw new UserManyStudentsException(messageService.get("teachers.student.limit.exceeded", studentLimit));
             }
 
             User student = User.studentToUserForTeacher(dto);
@@ -79,20 +84,23 @@ public class StudentService {
             student.setIsActive(true);
             student.setRoles(new HashSet<>());
 
-            roleRepository.findByName("USER").ifPresent(student::addRole);
-            roleRepository.findByName("STUDENT").ifPresent(student::addRole);
+            roleRepository.findByName(DEFAULT_USER_ROLE).ifPresent(student::addRole);
+            roleRepository.findByName(ROLE_STUDENT).ifPresent(student::addRole);
 
             String sub = subscription.getName();
             switch (sub) {
-                case "BASIC" -> subscriptionRepository.findByName("STUDENT_BASIC").ifPresent(student::setSubscription);
-                case "PRO" -> subscriptionRepository.findByName("STUDENT_PRO").ifPresent(student::setSubscription);
-                case "FULL" -> subscriptionRepository.findByName("STUDENT_FULL").ifPresent(student::setSubscription);
+                case BASIC_SUBSCRIPTION ->
+                        subscriptionRepository.findByName(STUDENT_BASIC).ifPresent(student::setSubscription);
+                case PRO_SUBSCRIPTION ->
+                        subscriptionRepository.findByName(STUDENT_RPO).ifPresent(student::setSubscription);
+                case FULL_SUBSCRIPTION ->
+                        subscriptionRepository.findByName(STUDENT_FULL).ifPresent(student::setSubscription);
                 default -> throw new UserManyStudentsException(messageService.get("teacher.free.subscription"));
             }
 
             userRepository.save(student);
 
-            teacher.getStudents().add(student);
+            students.add(student);
 
             return User.studentToDtoForTeacher(student);
         } catch (UserManyStudentsException e) {
@@ -106,14 +114,14 @@ public class StudentService {
         Integer currentUserId = SecurityUtils.getCurrentUserIdOrThrow();
 
         User teacher = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+                .orElseThrow(() -> new UsernameNotFoundException(messageService.get("user.not.found")));
 
-        if (teacher.hasRole("TEACHER")) {
-            throw new RuntimeException("Access denied, you are not a teacher!");
+        if (teacher.hasRole(ROLE_TEACHER)) {
+            throw new RuntimeException(messageService.get("you.are.not.teacher"));
         }
 
         User student = userRepository.findStudentOfTeacher(currentUserId, id)
-                .orElseThrow(() -> new RuntimeException("Student not found or does not belong to you!"));
+                .orElseThrow(() -> new RuntimeException(messageService.get("student.not.found")));
 
         return User.studentToDtoForTeacher(student);
     }
@@ -123,14 +131,14 @@ public class StudentService {
         Integer currentUserId = SecurityUtils.getCurrentUserIdOrThrow();
 
         User teacher = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+                .orElseThrow(() -> new UsernameNotFoundException(messageService.get("user.not.found")));
 
-        if (teacher.hasRole("TEACHER")) {
-            throw new RuntimeException("Access denied, you are not a teacher!");
+        if (teacher.hasRole(ROLE_TEACHER)) {
+            throw new RuntimeException(messageService.get("you.are.not.teacher"));
         }
 
         User student = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Student not found!"));
+                .orElseThrow(() -> new UsernameNotFoundException(messageService.get("student.not.found")));
         userBlockService.blockUser(student.getUserId());
         student.softDelete();
         userRepository.save(student);
