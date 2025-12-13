@@ -1,10 +1,12 @@
 package uz.javachi.autonline.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -32,13 +34,24 @@ public class StorageController {
 
     @GetMapping("/file")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'TEACHER')")
-    public ResponseEntity<byte[]> getFile(@RequestParam String key) {
+    public ResponseEntity<byte[]> getFile(
+            @RequestParam String key,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch
+    ) {
         byte[] fileData = storageService.downloadFile(key);
 
         String contentType = URLConnection.guessContentTypeFromName(key);
         if (contentType == null) contentType = "application/octet-stream";
 
+        String fileHash = DigestUtils.md5DigestAsHex(fileData);
+
+        if (fileHash.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
+        }
+
         return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .header(HttpHeaders.ETAG, fileHash)
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(fileData);
     }
