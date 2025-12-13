@@ -259,6 +259,12 @@ public class AuthService {
             throw new UserIsNotActiveException(messageService.get("user.is.blocked"));
         }
 
+        Subscription subscription = user.getSubscription();
+
+        if (!subscription.getIsActive()) {
+            throw new UserIsNotActiveException(messageService.get("subscription.is.blocked"));
+        }
+
         // Check subscription expiration
         if (user.getNextPaymentDate() != null && user.getNextPaymentDate().isBefore(LocalDateTime.now())) {
             if (user.getIsActive()) {
@@ -288,7 +294,6 @@ public class AuthService {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         // Generate new tokens
-        Subscription subscription = user.getSubscription();
         List<String> roles = getRoles(user);
         List<String> rolePermissions = getPermissions(user);
         List<String> subscriptionPermissions = getActivePermissionNames(subscription);
