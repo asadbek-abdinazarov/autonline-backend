@@ -62,3 +62,4 @@ src/test/
 
 # Prometheus config (if not needed in image)
 prometheus.yml
+

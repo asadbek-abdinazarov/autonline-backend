@@ -44,7 +44,7 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Value("${app.security.bcrypt.strength:12}")
     private int bcryptStrength;
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:3001,http://localhost:8080}")
+    @Value("${app.cors.allowed-origins:http://localhost:3000,https://autonline-production.up.railway.app,http://localhost:3001,http://localhost:8080}")
     private String allowedOrigins;
 
     @Value("${app.cors.allowed-methods:GET,POST,PATCH,PUT,DELETE,OPTIONS}")
