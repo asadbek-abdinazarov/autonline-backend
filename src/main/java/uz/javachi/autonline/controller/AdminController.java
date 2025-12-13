@@ -94,7 +94,7 @@ public class AdminController {
 
     @PostMapping("/create-news")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createNews(@RequestBody NewsRequestDTO dto) {
+    public ResponseEntity<?> createNews(@ModelAttribute NewsRequestDTO dto) {
         return ResponseEntity.ok(adminService.createNews(dto));
     }
 

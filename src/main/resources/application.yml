@@ -1,3 +1,11 @@
 spring:
   profiles:
     active: dev
+springdoc:
+  swagger-ui:
+    persistAuthorization: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus

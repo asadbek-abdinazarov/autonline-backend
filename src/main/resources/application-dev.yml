@@ -29,3 +29,11 @@ logging:
     uz.javachi.autonline.config.security: DEBUG
 server:
   port: ${A_SERVER_PORT:8080}
+
+do:
+  space:
+    accessKey: DO801WAZYEFG36XNUJER
+    secretKey: Hp4mVdehQPoyCQvcqGLAXJFekEQ4avJjMlW4CXj0m3I
+    endpoint: https://sfo3.digitaloceanspaces.com
+    region: sfo3
+    bucket: autonline

@@ -1,6 +1,7 @@
 package uz.javachi.autonline.dto.request;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class NewsRequestDTO {
@@ -9,7 +10,7 @@ public class NewsRequestDTO {
 
     private String newsDescription;
 
-    private String newsPhoto;
+    private MultipartFile newsPhoto;
 
     private Boolean isActive;
 }

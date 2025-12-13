@@ -95,11 +95,19 @@ public class StatisticService {
                 .thenApply(v -> {
                     DecimalFormat df = new DecimalFormat("#0.0");
 
+                    Double join = avgScore.join();
+                    if (join == null) {
+                        join = 0.0;
+                    }
+                    Double join1 = successRate.join();
+                    if (join1 == null) {
+                        join1 = 0.0;
+                    }
                     return UserLessonStatisticResponseDTO.builder()
                             .totalTests(totalTests.join())
                             .passed(passed.join())
-                            .averageScore(df.format(avgScore.join()))
-                            .successRate(df.format(successRate.join()))
+                            .averageScore(df.format(join))
+                            .successRate(df.format(join1))
                             .lessonHistories(histories.join())
                             .build();
                 });
