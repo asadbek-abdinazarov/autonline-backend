@@ -7,6 +7,10 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uz.javachi.autonline.dto.request.TeacherRegisterStudentRequest;
+import uz.javachi.autonline.dto.response.SearchResponseUserDTO;
+import uz.javachi.autonline.dto.response.StudentsResponseToTeacherDTO;
+import uz.javachi.autonline.dto.response.UserResponseDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,11 +22,11 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users", 
-       uniqueConstraints = {
-           @UniqueConstraint(columnNames = "username"),
-           @UniqueConstraint(columnNames = "phone_number")
-       })
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "username"),
+                @UniqueConstraint(columnNames = "phone_number")
+        })
 public class User {
 
     @Id
@@ -54,14 +58,22 @@ public class User {
     @Column(name = "next_payment_date")
     private LocalDateTime nextPaymentDate;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "teacher_students",
+            joinColumns = @JoinColumn(name = "teacher_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id", unique = true)
+    )
+    private List<User> students;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentHistory> paymentHistory;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
 
@@ -115,4 +127,57 @@ public class User {
     public boolean isAccountActive() {
         return !this.isActive || this.isDeleted();
     }
+
+    public static UserResponseDTO toDto(User user) {
+        return UserResponseDTO.builder()
+                .id(user.getUserId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .nextPaymentDate(user.getNextPaymentDate())
+                .subscription(Subscription.subscriptionToDto(user.getSubscription()))
+                .roles(user.getRoles().stream().map(Role::rolesToDto).toList())
+                .paymentHistory(user.getPaymentHistory().stream().map(PaymentHistory::toDto).toList())
+                .phoneNumber(user.getPhoneNumber())
+                .isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+    }
+
+    public static SearchResponseUserDTO searchUserDTO(User user) {
+        return SearchResponseUserDTO.builder()
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .isActive(user.getIsActive())
+                .build();
+    }
+
+    public static StudentsResponseToTeacherDTO studentToDtoForTeacher(User user) {
+        return StudentsResponseToTeacherDTO.builder()
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .nextPaymentDate(user.getNextPaymentDate())
+                .subscription(Subscription.subscriptionToDto(user.getSubscription()))
+                .isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+
+    }
+
+
+    public static User studentToUserForTeacher(TeacherRegisterStudentRequest dto) {
+        return User.builder()
+                .fullName(dto.getFullName())
+                .username(dto.getUsername())
+                .phoneNumber(dto.getPhoneNumber())
+                .nextPaymentDate(dto.getNextPaymentDate())
+                .build();
+
+    }
+
 }

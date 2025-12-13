@@ -8,14 +8,18 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import uz.javachi.autonline.config.LocaleCopyingTaskDecorator;
 
+import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
+
 @Slf4j
 @EnableAsync
 @SpringBootApplication
+@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 @EnableAspectJAutoProxy
 public class AutonlineApplication {
 
@@ -26,7 +30,6 @@ public class AutonlineApplication {
 
     @PostConstruct
     public void init() {
-//        autoSaveService.saveQuestion();
         log.info("✅Dastur ishga tushirildi...");
     }
 

@@ -9,13 +9,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import uz.javachi.autonline.model.Permission;
 import uz.javachi.autonline.model.Role;
+import uz.javachi.autonline.model.Subscription;
 import uz.javachi.autonline.model.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @Builder
@@ -30,8 +28,8 @@ public class CustomUserDetails implements UserDetails {
     private Boolean isActive;
     private LocalDateTime nextPaymentDate;
     private Set<Role> roles;
+    private Subscription subscriptions;
 
-    // Cached authorities to avoid recomputation
     private transient Collection<? extends GrantedAuthority> cachedAuthorities;
 
     public static CustomUserDetails fromUser(User user) {
@@ -42,15 +40,15 @@ public class CustomUserDetails implements UserDetails {
                 .nextPaymentDate(user.getNextPaymentDate())
                 .isActive(user.getIsActive())
                 .phoneNumber(user.getPhoneNumber())
+                .subscriptions(user.getSubscription())
                 .roles(user.getRoles())
                 .build();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Lazy initialization with caching
         if (cachedAuthorities == null) {
-            cachedAuthorities = getGrantedAuthorities(roles);
+            cachedAuthorities = getGrantedAuthorities(roles, subscriptions);
         }
         return cachedAuthorities;
     }
@@ -62,30 +60,47 @@ public class CustomUserDetails implements UserDetails {
         this.cachedAuthorities = null;
     }
 
-    static Collection<? extends GrantedAuthority> getGrantedAuthorities(Set<Role> roles) {
-        if (roles == null || roles.isEmpty()) {
-            return List.of();
-        }
+    static Collection<? extends GrantedAuthority> getGrantedAuthorities(Set<Role> roles,
+                                                                        Subscription subscription) {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
-        
-        // Use streams for better performance and readability
-        roles.stream()
-                .filter(role -> role.getIsActive() && !role.isDeleted())
-                .forEach(role -> {
-                    // Add role authority
-                    authorities.add(new SimpleGrantedAuthority("ROLE_%s".formatted(role.getName().toUpperCase())));
-                    
-                    // Add permission authorities
-                    if (role.getPermissions() != null) {
-                        role.getPermissions().stream()
-                                .filter(permission -> permission.getIsActive() && !permission.isDeleted())
-                                .forEach(permission -> 
-                                    authorities.add(new SimpleGrantedAuthority(permission.getName().toUpperCase()))
-                                );
-                    }
-                });
-        
+
+        Set<Permission> allPermissions = new HashSet<>();
+
+        if (roles != null) {
+            roles.stream()
+                    .filter(r -> r.getIsActive() && !r.isDeleted())
+                    .forEach(role -> {
+
+                        authorities.add(new SimpleGrantedAuthority(
+                                "ROLE_%s".formatted(role.getName().toUpperCase())
+                        ));
+
+                        if (role.getPermissions() != null) {
+                            allPermissions.addAll(
+                                    role.getPermissions().stream()
+                                            .filter(p -> p.getIsActive() && !p.isDeleted())
+                                            .toList()
+                            );
+                        }
+                    });
+        }
+
+        if (subscription != null) {
+            Set<Permission> permissions = subscription.getPermissions();
+            if (!permissions.isEmpty()) {
+                allPermissions.addAll(
+                        permissions.stream()
+                                .filter(p -> p.getIsActive() && !p.isDeleted())
+                                .toList()
+                );
+            }
+        }
+
+        allPermissions.forEach(permission ->
+                authorities.add(new SimpleGrantedAuthority(permission.getName().toUpperCase()))
+        );
+
         return authorities;
     }
 

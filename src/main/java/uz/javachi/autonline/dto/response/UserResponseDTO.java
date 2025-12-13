@@ -34,8 +34,4 @@ public class UserResponseDTO implements Serializable {
     private List<RoleResponseDTO> roles;
 
     private List<PaymentHistoryResponseDTO> paymentHistory;
-
-//    private List<PermissionResponseDTO> subscriptionPermissions;
-
-//    private List<PermissionResponseDTO> rolePermissions;
 }

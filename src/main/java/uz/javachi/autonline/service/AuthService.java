@@ -20,10 +20,7 @@ import uz.javachi.autonline.dto.request.LoginRequest;
 import uz.javachi.autonline.dto.request.RefreshTokenRequest;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
-import uz.javachi.autonline.exceptions.CustomRoleNotFoundException;
-import uz.javachi.autonline.exceptions.ResourceNotFoundException;
-import uz.javachi.autonline.exceptions.UserAlreadyExistsException;
-import uz.javachi.autonline.exceptions.UserIsNotActiveException;
+import uz.javachi.autonline.exceptions.*;
 import uz.javachi.autonline.model.*;
 import uz.javachi.autonline.repository.PermissionRepository;
 import uz.javachi.autonline.repository.RoleRepository;
@@ -35,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static uz.javachi.autonline.DefaultValues.DEFAULT_ROLE;
+import static uz.javachi.autonline.DefaultValues.DEFAULT_USER_ROLE;
 import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
 import static uz.javachi.autonline.utils.Utils.*;
 
@@ -88,19 +85,7 @@ public class AuthService {
 
 
         Result result = getResult(authentication, sessionId, roles, rolePermissions, user);
-
-//        // Generate tokens with all claims in one go
-//        UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
-//
-//        // Create claims map with sessionId, roles, and permissions
-//        Map<String, Object> claims = new java.util.HashMap<>();
-//        claims.put("sessionId", sessionId);
-//        claims.put("roles", roles);
-//        claims.put("permissions", rolePermissions);
-//
-//        String accessToken = jwtUtils.generateToken(userDetails, claims);
-//        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
-
+        log.info("✅ Foydalanuvchi muvaffaqiyatli tizimga kirdi: {}", loginRequest.getUsername());
         return buildJwtResponse(result.accessToken(), result.refreshToken(), user, subscription, subscriptionPermissions, rolePermissions, roles, sessionId);
     }
 
@@ -163,7 +148,7 @@ public class AuthService {
         claims.put("permissions", rolePermissions);
 
         String accessToken = jwtUtils.generateToken(userDetails, claims);
-        String refreshToken = jwtUtils.generateRefreshToken(newUser.getUsername());
+        String refreshToken = jwtUtils.generateRefreshToken(userDetails.getUsername());
         return new Result(accessToken, refreshToken);
     }
 
@@ -203,8 +188,8 @@ public class AuthService {
     }
 
     private Role getRoleOrThrow() {
-        return roleRepository.findByName(DEFAULT_ROLE)
-                .orElseThrow(() -> new CustomRoleNotFoundException("Rol topilmadi: %s".formatted(DEFAULT_ROLE)));
+        return roleRepository.findByName(DEFAULT_USER_ROLE)
+                .orElseThrow(() -> new CustomRoleNotFoundException("Rol topilmadi: %s".formatted(DEFAULT_USER_ROLE)));
     }
 
 
@@ -249,12 +234,12 @@ public class AuthService {
 
         // Validate refresh token
         if (!jwtUtils.validateToken(refreshToken)) {
-            throw new BadCredentialsException(messageService.get("invalid.refresh.token"));
+            throw new TokenException(messageService.get("invalid.refresh.token"));
         }
 
         // Check if it's actually a refresh token
         if (!jwtUtils.isRefreshToken(refreshToken)) {
-            throw new BadCredentialsException(messageService.get("token.is.not.refresh.token"));
+            throw new TokenException(messageService.get("token.is.not.refresh.token"));
         }
 
         // Extract username from refresh token

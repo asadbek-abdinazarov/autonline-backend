@@ -2,6 +2,9 @@ package uz.javachi.autonline.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import uz.javachi.autonline.dto.response.StatisticResponseDTO;
@@ -13,9 +16,9 @@ import uz.javachi.autonline.repository.QuestionRepository;
 import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.utils.SecurityUtils;
 
-import java.util.List;
-import java.util.Objects;
+import java.text.DecimalFormat;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -25,18 +28,19 @@ public class StatisticService {
     private final PaymentHistoryRepository paymentHistoryRepository;
     private final QuestionRepository questionRepository;
     private final LessonHistoryRepository lessonHistoryRepository;
-    private final MessageService messageService;
+    private static final DecimalFormat ONE_DECIMAL = new DecimalFormat("#0.0");
+
 
     @Async("applicationTaskExecutor")
     public CompletableFuture<StatisticResponseDTO> getStatistic() {
 
-        CompletableFuture<Long> activeUsersFuture = CompletableFuture.supplyAsync(() -> userRepository.countByIsActive(true));
+        CompletableFuture<Long> activeUsersFuture = supply(() -> userRepository.countByIsActive(true));
 
-        CompletableFuture<Long> paymentFuture = CompletableFuture.supplyAsync(() -> paymentHistoryRepository.countByIsPaid(true));
+        CompletableFuture<Long> paymentFuture = supply(() -> paymentHistoryRepository.countByIsPaid(true));
 
-        CompletableFuture<Long> questionsFuture = CompletableFuture.supplyAsync(questionRepository::count);
+        CompletableFuture<Long> questionsFuture = supply(questionRepository::count);
 
-        CompletableFuture<Long> lessonsFuture = CompletableFuture.supplyAsync(lessonHistoryRepository::count);
+        CompletableFuture<Long> lessonsFuture = supply(lessonHistoryRepository::count);
 
         return CompletableFuture.allOf(activeUsersFuture, paymentFuture, questionsFuture, lessonsFuture).thenApply(v -> {
             StatisticResponseDTO dto = new StatisticResponseDTO();
@@ -53,34 +57,66 @@ public class StatisticService {
     }
 
     @Async("applicationTaskExecutor")
-    public CompletableFuture<UserLessonStatisticResponseDTO> getUserLessonHistory() {
+    public CompletableFuture<UserLessonStatisticResponseDTO> getUserLessonHistory(int page, int size) {
+        Integer userId = SecurityUtils.getCurrentUserIdOrThrow();
+        Pageable pageable = PageRequest.of(page, size);
+
+        return buildUserLessonStatistics(userId, pageable);
+    }
+
+    @Async("applicationTaskExecutor")
+    public CompletableFuture<UserLessonStatisticResponseDTO> getUserLessonHistory(Integer userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return buildUserLessonStatistics(userId, pageable);
+    }
+
+    private CompletableFuture<UserLessonStatisticResponseDTO> buildUserLessonStatistics(
+            Integer userId,
+            Pageable pageable
+    ) {
         String lang = LocaleContextHolder.getLocale().getLanguage();
-        Integer currentUserId = SecurityUtils.getCurrentUserIdOrThrow();
 
-        CompletableFuture<Long> totalTests = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.countByUserId(currentUserId));
+        CompletableFuture<Long> totalTests = supply(() ->
+                lessonHistoryRepository.countByUserId(userId));
 
-        CompletableFuture<Long> passed = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.countByUserIdAndPercentageHigher(currentUserId));
+        CompletableFuture<Long> passed = supply(() ->
+                lessonHistoryRepository.countByUserIdAndPercentageHigher(userId));
 
-        CompletableFuture<Integer> averageScore = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.findByUserIdAndAvg(currentUserId));
+        CompletableFuture<Double> avgScore = supply(() ->
+                lessonHistoryRepository.findByUserIdAndAvg(userId));
 
-        CompletableFuture<Integer> successRate = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.findByUserIdAndSuccessRate(currentUserId));
+        CompletableFuture<Double> successRate = supply(() ->
+                lessonHistoryRepository.findSuccessRate(userId));
 
-        CompletableFuture<List<LessonHistoryProjection>> lessonHistories = CompletableFuture.supplyAsync(() -> lessonHistoryRepository.getAllByUserId(currentUserId, lang));
+        CompletableFuture<Page<LessonHistoryProjection>> histories = supply(() ->
+                lessonHistoryRepository.getAllByUserId(lang, userId, pageable));
 
-        return CompletableFuture.allOf(totalTests, passed, averageScore, successRate, lessonHistories).thenApply(v -> {
-            UserLessonStatisticResponseDTO dto = new UserLessonStatisticResponseDTO();
+        return CompletableFuture.allOf(totalTests, passed, avgScore, successRate, histories)
+                .thenApply(v -> {
+                    DecimalFormat df = new DecimalFormat("#0.0");
 
-            try {
-                dto.setTotalTests(totalTests.get());
-                dto.setPassed(passed.get());
-                dto.setAverageScore(averageScore.get());
-                dto.setSuccessRate(successRate.get());
-                dto.setLessonHistories(lessonHistories.get());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return dto;
-        });
+                    Double join = avgScore.join();
+                    if (join == null) {
+                        join = 0.0;
+                    }
+                    Double join1 = successRate.join();
+                    if (join1 == null) {
+                        join1 = 0.0;
+                    }
+                    return UserLessonStatisticResponseDTO.builder()
+                            .totalTests(totalTests.join())
+                            .passed(passed.join())
+                            .averageScore(df.format(join))
+                            .successRate(df.format(join1))
+                            .lessonHistories(histories.join())
+                            .build();
+                });
+    }
 
+    /**
+     * Short alias for supplyAsync using same executor
+     */
+    private <T> CompletableFuture<T> supply(Supplier<T> supplier) {
+        return CompletableFuture.supplyAsync(supplier);
     }
 }

@@ -19,10 +19,11 @@ import uz.javachi.autonline.repository.SubscriptionRepository;
 import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.utils.SecurityUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static uz.javachi.autonline.DefaultValues.DEFAULT_ROLE;
+import static uz.javachi.autonline.DefaultValues.DEFAULT_USER_ROLE;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class AdminService {
     private final UserBlockService userBlockService;
     private final NewsRepository newsRepository;
     private final MessageService messageService;
+    private final StorageService storageService;
 
 
     @Transactional(readOnly = true)
@@ -94,6 +96,11 @@ public class AdminService {
             throw new IllegalStateException(messageService.get("user.already.has.role", user.getUsername(), role.getName()));
         }
 
+        String isFree = subscriptionRepository.isUserHaveSubscription(userId);
+        if (isFree.equals("FREE")) {
+            throw new IllegalStateException(messageService.get("user.with.free.subscription.cannot.add.role"));
+        }
+
         user.getRoles().add(role);
         userRepository.saveAndFlush(user);
         return messageService.get("role.success.added.to.user", role.getName(), user.getUsername());
@@ -111,8 +118,8 @@ public class AdminService {
         Role role = getRoleOrThrow(roleId);
         validateRoleActive(role);
 
-        if (role.getName().equals(DEFAULT_ROLE)) {
-            throw new RuntimeException(messageService.get("default.user.role.cant.remove", DEFAULT_ROLE));
+        if (role.getName().equals(DEFAULT_USER_ROLE)) {
+            throw new RuntimeException(messageService.get("default.user.role.cant.remove", DEFAULT_USER_ROLE));
         }
 
         if (!userHasRole(user, roleId)) {
@@ -238,7 +245,19 @@ public class AdminService {
 
     public String createNews(NewsRequestDTO dto) {
         News entity = News.toEntity(dto);
-        newsRepository.saveAndFlush(entity);
-        return messageService.get("news.successfully.created");
+        entity.setNewsCreatedAt(LocalDateTime.now());
+
+        if (dto.getNewsPhoto() != null && !dto.getNewsPhoto().isEmpty()) {
+            try {
+                String photo = storageService.uploadFile(dto.getNewsPhoto(), "images/news").get();
+                entity.setNewsPhoto(photo);
+                newsRepository.save(entity);
+                return messageService.get("news.successfully.created");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return messageService.get("news.not.successfully.created");
     }
 }

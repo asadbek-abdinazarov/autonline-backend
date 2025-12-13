@@ -1,6 +1,7 @@
 package uz.javachi.autonline.dto.response;
 
 import lombok.*;
+import org.springframework.data.domain.Page;
 import uz.javachi.autonline.projection.LessonHistoryProjection;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
 public class UserLessonStatisticResponseDTO {
     private Long totalTests;
     private Long passed;
-    private Integer averageScore;
-    private Integer successRate;
-    private List<LessonHistoryProjection> lessonHistories;
+    private String averageScore;
+    private String successRate;
+    private Page<LessonHistoryProjection> lessonHistories;
 }

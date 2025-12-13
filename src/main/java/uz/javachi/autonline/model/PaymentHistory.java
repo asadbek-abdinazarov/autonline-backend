@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uz.javachi.autonline.dto.response.PaymentHistoryResponseDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -89,5 +90,20 @@ public class PaymentHistory {
 
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public static PaymentHistoryResponseDTO toDto(PaymentHistory paymentHistory) {
+        return PaymentHistoryResponseDTO.builder()
+                .paymentHistoryId(paymentHistory.getPaymentHistoryId())
+                .paymentAmount(paymentHistory.getPaymentAmount())
+                .paymentCurrency(paymentHistory.getPaymentCurrency())
+                .isPaid(paymentHistory.getIsPaid())
+                .paymentDate(paymentHistory.getPaymentDate())
+                .paymentMethod(paymentHistory.getPaymentMethod())
+                .description(paymentHistory.getDescription())
+                .createdAt(paymentHistory.getCreatedAt())
+                .updatedAt(paymentHistory.getUpdatedAt())
+                .deletedAt(paymentHistory.getDeletedAt())
+                .build();
     }
 }

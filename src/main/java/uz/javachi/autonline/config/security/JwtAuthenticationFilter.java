@@ -32,7 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Value("${app.logging.debug:false}")
     private boolean debugLogging;
 
-    // Public endpoints that don't require authentication
     private static final Set<String> PUBLIC_PATHS = Set.of(
             "/api/v1/auth/",
             "/api/v1/public/",
@@ -40,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/ws/",
             "/api/v1/news/",
             "/api/v1/statistic/",
+            "/api/v1/subscription",
             "/actuator/",
             "/swagger-ui/",
             "/v3/api-docs/"
@@ -107,6 +107,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (!jwtUtils.validateToken(jwt)) {
                 if (debugLogging) {
                     log.debug("JWT token validation failed for path: {}", requestPath);
+                }
+                // Check if token is specifically expired (not just invalid)
+                if (jwtUtils.isTokenExpiredException(jwt)) {
+                    // Set attribute to indicate token is expired
+                    request.setAttribute("TOKEN_EXPIRED", true);
+                    if (debugLogging) {
+                        log.debug("Token is expired, setting TOKEN_EXPIRED attribute");
+                    }
                 }
                 filterChain.doFilter(request, response);
                 return;

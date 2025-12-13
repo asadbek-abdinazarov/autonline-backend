@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${A_DB_URL}
+    url: jdbc:postgresql://${A_DB_HOST}:${A_DB_PORT}/${A_DB_NAME}
     driver-class-name: org.postgresql.Driver
     username: ${A_DB_USERNAME}
     password: ${A_DB_PASSWORD}
@@ -18,8 +18,8 @@ app:
   jwt:
     secret: ${A_JWT_SECRET}
     expiration: ${A_JWT_EXPIRATION} # 24 hours in milliseconds
-accepted:
-  origin: ${A_ACCEPTED_ORIGIN}
+    refresh:
+      expiration: ${A_JWT_REFRESH_EXPIRATION:604800000} # 7 days in milliseconds
 # Logging Configuration
 logging:
   level:

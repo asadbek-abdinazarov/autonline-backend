@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import uz.javachi.autonline.dto.request.MessageRequestDTO;
 import uz.javachi.autonline.dto.request.NewsRequestDTO;
 import uz.javachi.autonline.dto.request.UpdateUserRequestDTO;
 import uz.javachi.autonline.dto.response.NewsResponse;
@@ -95,7 +94,7 @@ public class AdminController {
 
     @PostMapping("/create-news")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createNews(@RequestBody NewsRequestDTO dto) {
+    public ResponseEntity<?> createNews(@ModelAttribute NewsRequestDTO dto) {
         return ResponseEntity.ok(adminService.createNews(dto));
     }
 
