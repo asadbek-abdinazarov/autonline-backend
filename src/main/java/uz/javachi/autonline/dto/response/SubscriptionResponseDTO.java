@@ -27,6 +27,10 @@ public class SubscriptionResponseDTO {
 
     private Boolean isActive;
 
+    private Byte orderIndex;
+
+    private Boolean isPopular;
+
     private Set<PermissionResponseDTO> permissions;
 
     private LocalDateTime createdAt;
