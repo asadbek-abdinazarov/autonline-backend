@@ -11,6 +11,13 @@ import java.util.Optional;
 public interface SubscriptionRepository extends JpaRepository<Subscription, Integer> {
     Optional<Subscription> findByName(String name);
 
+    @Query(nativeQuery = true, value =
+    """
+                SELECT  * FROM subscription s
+                WHERE s.deleted_at IS NULL AND s.is_active = :isActive
+                AND name NOT LIKE 'STUDENT%' and name <> 'FREE'
+                ORDER BY order_index
+            """)
     List<Subscription> findSubscriptionByDeletedAtIsNullAndIsActive(Boolean isActive);
 
     @Query(nativeQuery = true, value = """

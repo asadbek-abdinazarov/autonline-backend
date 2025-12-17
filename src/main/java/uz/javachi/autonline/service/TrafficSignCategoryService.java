@@ -15,7 +15,7 @@ public class TrafficSignCategoryService {
     private final TrafficSignCategoriesRepository trafficSignCategoriesRepository;
 
     public List<TrafficSignCategoryResponseDTO> getAllTrafficSignCategories() {
-        return trafficSignCategoriesRepository.findAll().stream()
+        return trafficSignCategoriesRepository.findAllTrafficSignCategories().stream()
                 .map(TrafficSignCategories::toDto)
                 .toList();
     }
