@@ -10,8 +10,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.exceptions.UserBlockedOrDeletedException;
-import uz.javachi.autonline.exceptions.UserIsNotActiveException;
-import uz.javachi.autonline.model.Subscription;
 import uz.javachi.autonline.model.User;
 import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.service.MessageService;
@@ -90,11 +88,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UserBlockedOrDeletedException(fMessage);
         }
 
-        Subscription subscription = user.getSubscription();
-
-        if (!subscription.getIsActive()) {
-            throw new UserIsNotActiveException(messageService.get("subscription.is.blocked"));
-        }
         // Check subscription expiration (optimized - only update if expired)
         if (user.getNextPaymentDate() != null && user.getNextPaymentDate().isBefore(LocalDateTime.now())) {
             // Only update if not already inactive

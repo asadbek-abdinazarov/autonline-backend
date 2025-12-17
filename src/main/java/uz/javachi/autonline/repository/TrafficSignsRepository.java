@@ -22,7 +22,6 @@ public interface TrafficSignsRepository extends JpaRepository<TrafficSigns, Inte
                        ON ts.traffic_signs_categories_id = tsc.traffic_signs_categories_id
                 WHERE tsc.traffic_signs_categories_id = :categoryId
                   AND ts.is_active = :isActive
-                ORDER BY ts.traffic_signs_id
             """)
     List<TrafficSigns> findAllByCategoryIdAndIsActiveTrue(Integer categoryId, Boolean isActive);
 }
