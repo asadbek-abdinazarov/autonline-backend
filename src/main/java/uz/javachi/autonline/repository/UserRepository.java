@@ -67,10 +67,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
                 left join fetch u.subscription s
                 left join fetch s.permissions p
                 where u.username = :username
-                            and u.deletedAt is null
-                                        and u.isActive
-                                                    and s.isActive = true
-                                                                and s.deletedAt is null
             """)
     Optional<User> findByUsernameAndSubscription(@Param("username") String username);
 

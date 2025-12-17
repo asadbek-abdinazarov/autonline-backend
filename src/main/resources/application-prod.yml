@@ -28,3 +28,11 @@ logging:
     uz.javachi.autonline.config.security: ${CONFIG_LOG_LEVEL}
 server:
   port: ${SERVER_PORT}
+
+do:
+  space:
+    accessKey: ${STORAGE_ACCESS_KEY}
+    secretKey: ${STORAGE_SECRET_KEY}
+    endpoint: ${STORAGE_ENDPOINT}
+    region: ${STORAGE_REGION}
+    bucket: ${STORAGE_BUCKET}

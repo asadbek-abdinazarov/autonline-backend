@@ -1,7 +1,6 @@
 package uz.javachi.autonline.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
@@ -9,8 +8,6 @@ import uz.javachi.autonline.exceptions.ResourceNotFoundException;
 import uz.javachi.autonline.model.Subscription;
 import uz.javachi.autonline.repository.SubscriptionRepository;
 
-import javax.naming.ContextNotEmptyException;
-import java.lang.ScopedValue;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,0 +1,65 @@
+# Build artifacts
+target/
+.mvn/wrapper/maven-wrapper.jar
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+.apt_generated
+.sts4-cache
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+HELP.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Test files
+src/test/
+
+# Prometheus config (if not needed in image)
+prometheus.yml
+

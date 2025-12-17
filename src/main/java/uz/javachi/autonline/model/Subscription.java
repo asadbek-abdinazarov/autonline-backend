@@ -39,8 +39,8 @@ public class Subscription {
 
     private Double price;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> features;
+    @Builder.Default
+    private Boolean isPopular = false;
 
     @Column(name = "buy_text", columnDefinition = "TEXT")
     private String buyText;
@@ -51,13 +51,7 @@ public class Subscription {
 
     private Integer studentLimit;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "subscription_permissions",
-            joinColumns = @JoinColumn(name = "subscription_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
-    private Set<Permission> permissions;
+    private Byte orderIndex;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -69,6 +63,18 @@ public class Subscription {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> features;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "subscription_permissions",
+            joinColumns = @JoinColumn(name = "subscription_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> permissions;
 
     public void addPermission(Permission permission) {
         this.permissions.add(permission);
@@ -101,6 +107,8 @@ public class Subscription {
                 .price(subscription.getPrice())
                 .buyText(subscription.getBuyText())
                 .description(subscription.getDescription())
+                .orderIndex(subscription.getOrderIndex())
+                .isPopular(subscription.getIsPopular())
                 .permissions(subscription.getPermissions()
                         .stream().map(Permission::permissionToDto)
                         .collect(Collectors.toSet()))

@@ -19,6 +19,7 @@ import uz.javachi.autonline.repository.SubscriptionRepository;
 import uz.javachi.autonline.repository.UserRepository;
 import uz.javachi.autonline.utils.SecurityUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ public class AdminService {
     private final UserBlockService userBlockService;
     private final NewsRepository newsRepository;
     private final MessageService messageService;
+    private final StorageService storageService;
 
 
     @Transactional(readOnly = true)
@@ -243,7 +245,19 @@ public class AdminService {
 
     public String createNews(NewsRequestDTO dto) {
         News entity = News.toEntity(dto);
-        newsRepository.saveAndFlush(entity);
-        return messageService.get("news.successfully.created");
+        entity.setNewsCreatedAt(LocalDateTime.now());
+
+        if (dto.getNewsPhoto() != null && !dto.getNewsPhoto().isEmpty()) {
+            try {
+                String photo = storageService.uploadFile(dto.getNewsPhoto(), "images/news").get();
+                entity.setNewsPhoto(photo);
+                newsRepository.save(entity);
+                return messageService.get("news.successfully.created");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return messageService.get("news.not.successfully.created");
     }
 }

@@ -50,7 +50,6 @@ public class News {
         return News.builder()
                 .newsTitle(dto.getNewsTitle())
                 .newsDescription(dto.getNewsDescription())
-                .newsPhoto(dto.getNewsPhoto())
                 .newsCreatedAt(LocalDateTime.now())
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .build();
