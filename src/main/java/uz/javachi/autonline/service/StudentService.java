@@ -89,11 +89,11 @@ public class StudentService {
 
             String sub = subscription.getName();
             switch (sub) {
-                case BASIC_SUBSCRIPTION ->
+                case BASIC_TEACHER ->
                         subscriptionRepository.findByName(STUDENT_BASIC).ifPresent(student::setSubscription);
-                case PRO_SUBSCRIPTION ->
+                case RPO_TEACHER ->
                         subscriptionRepository.findByName(STUDENT_RPO).ifPresent(student::setSubscription);
-                case FULL_SUBSCRIPTION ->
+                case FULL_TEACHER ->
                         subscriptionRepository.findByName(STUDENT_FULL).ifPresent(student::setSubscription);
                 default -> throw new UserManyStudentsException(messageService.get("teacher.free.subscription"));
             }
