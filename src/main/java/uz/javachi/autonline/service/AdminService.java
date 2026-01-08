@@ -37,7 +37,6 @@ public class AdminService {
     private final MessageService messageService;
     private final StorageService storageService;
 
-
     @Transactional(readOnly = true)
 
     public Page<UserResponseDTO> getAllUsers(int page, int size) {
@@ -57,6 +56,8 @@ public class AdminService {
 
         Subscription subscription = getSubscriptionOrThrow(subscriptionId);
         validateSubscriptionActive(subscription);
+
+        user.setNextPaymentDate(LocalDateTime.now().plusDays(subscription.getActiveDays()));
 
         if (subscriptionId.equals(user.getSubscription().getSubscriptionId())) {
             return messageService.get("user.already.has.subscription", subscription.getName());
