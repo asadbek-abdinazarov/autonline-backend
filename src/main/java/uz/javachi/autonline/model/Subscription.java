@@ -64,6 +64,8 @@ public class Subscription {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    private Integer activeDays;
+
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> features;

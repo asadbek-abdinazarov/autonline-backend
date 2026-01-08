@@ -28,7 +28,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
     private final MessageService messageService;
 
-    @Value("${app.userdetails.cache.enabled:true}")
+    @Value("${app.userdetails.cache.enabled:false}")
     private boolean cacheEnabled;
 
     @Value("${app.userdetails.cache.ttl:300000}")

@@ -1,6 +1,7 @@
 package uz.javachi.autonline.utils;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import uz.javachi.autonline.dto.SimpleUserDto;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
 import uz.javachi.autonline.model.Permission;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 public class Utils {
-    public static JwtResponse buildJwtResponse(String accessToken,String refreshToken, User user, Subscription subscription, List<String> subscriptionPermissions, List<String> rolePermissions, List<String> roles, String sessionId) {
+    public static JwtResponse buildJwtResponse(String accessToken, String refreshToken, User user, Subscription subscription, List<String> subscriptionPermissions, List<String> rolePermissions, List<String> roles, String sessionId) {
         return JwtResponse.builder()
                 .id(user.getUserId())
                 .accessToken(accessToken)
@@ -30,6 +31,20 @@ public class Utils {
                 .sessionId(sessionId)
                 .rolePermissions(rolePermissions)
                 .roles(roles)
+                .build();
+    }
+
+    public static SimpleUserDto buildJwtResponse(User user, Subscription subscription, List<String> permissions, List<String> roles) {
+        return SimpleUserDto.builder()
+                .id(user.getUserId())
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .fullName(user.getFullName())
+                .isActive(user.getIsActive())
+                .nextPaymentDate(user.getNextPaymentDate())
+                .subscription(subscription.getName())
+                .roles(roles)
+                .permissions(permissions)
                 .build();
     }
 
@@ -69,6 +84,7 @@ public class Utils {
                 .map(Role::getName)
                 .toList();
     }
+
     public static String urlEncoder(String input) {
         return URLEncoder.encode(input, StandardCharsets.UTF_8);
     }
