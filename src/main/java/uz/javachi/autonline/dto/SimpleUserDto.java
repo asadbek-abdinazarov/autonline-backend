@@ -15,6 +15,7 @@ public class SimpleUserDto {
     private String fullName;
     private String phoneNumber;
     private String subscription;
+    private String subscriptionDefName;
     private Boolean isActive;
     private LocalDateTime nextPaymentDate;
     private List<String> roles;

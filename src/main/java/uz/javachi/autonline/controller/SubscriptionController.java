@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uz.javachi.autonline.dto.response.SimpleSubscriptionResponseDTO;
 import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
 import uz.javachi.autonline.service.SubscriptionService;
 
@@ -17,7 +18,7 @@ public class SubscriptionController {
     private final SubscriptionService subscriptionService;
 
     @GetMapping
-    public ResponseEntity<List<SubscriptionResponseDTO>> getSubscriptions() {
+    public ResponseEntity<List<SimpleSubscriptionResponseDTO>> getSubscriptions() {
         return ResponseEntity.ok(subscriptionService.getSubscriptions());
     }
 }

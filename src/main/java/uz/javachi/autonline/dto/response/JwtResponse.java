@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class JwtResponse {
-
     private String accessToken;
     private String refreshToken;
     @Builder.Default
@@ -23,10 +23,10 @@ public class JwtResponse {
     private String fullName;
     private String phoneNumber;
     private String subscription;
+    private String subscriptionDefName;
     private String sessionId;
     private Boolean isActive;
     private LocalDateTime nextPaymentDate;
     private List<String> roles;
-    private List<String> rolePermissions;
-    private List<String> subscriptionPermissions;
+    private List<String> permissions;
 }

@@ -37,9 +37,9 @@ public class UserService {
 
         Subscription subscription = user.getSubscription();
 
-
         List<String> roles = getRoles(user);
-        List<String> permissions = new java.util.ArrayList<>(getActivePermissionNames(subscription));
+        List<String> permissions = new java.util.ArrayList<>(getPermissions(user));
+        permissions.addAll(getActivePermissionNames(subscription));
 
         return buildJwtResponse(user, subscription, permissions, roles);
     }

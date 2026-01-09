@@ -3,7 +3,7 @@ package uz.javachi.autonline.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
+import uz.javachi.autonline.dto.response.SimpleSubscriptionResponseDTO;
 import uz.javachi.autonline.exceptions.ResourceNotFoundException;
 import uz.javachi.autonline.model.Subscription;
 import uz.javachi.autonline.repository.SubscriptionRepository;
@@ -21,11 +21,11 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public List<SubscriptionResponseDTO> getSubscriptions() {
+    public List<SimpleSubscriptionResponseDTO> getSubscriptions() {
         List<Subscription> sbdaia = subscriptionRepository.findSubscriptionByDeletedAtIsNullAndIsActive(true);
         if (sbdaia.isEmpty()) {
             throw new ResourceNotFoundException("Subscriptions are not found!");
         }
-        return sbdaia.stream().map(Subscription::subscriptionToDto).toList();
+        return sbdaia.stream().map(Subscription::simpleSubscriptionDto).toList();
     }
 }

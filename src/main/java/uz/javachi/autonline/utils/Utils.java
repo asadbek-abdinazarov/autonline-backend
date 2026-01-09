@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 public class Utils {
-    public static JwtResponse buildJwtResponse(String accessToken, String refreshToken, User user, Subscription subscription, List<String> subscriptionPermissions, List<String> rolePermissions, List<String> roles, String sessionId) {
+    public static JwtResponse buildJwtResponse(String accessToken, String refreshToken, User user, Subscription subscription, List<String> roles, List<String> permissions, String sessionId) {
         return JwtResponse.builder()
                 .id(user.getUserId())
                 .accessToken(accessToken)
@@ -27,9 +27,9 @@ public class Utils {
                 .isActive(user.getIsActive())
                 .nextPaymentDate(user.getNextPaymentDate())
                 .subscription(subscription.getName())
-                .subscriptionPermissions(subscriptionPermissions)
+                .subscriptionDefName(subscription.getDefName())
                 .sessionId(sessionId)
-                .rolePermissions(rolePermissions)
+                .permissions(permissions)
                 .roles(roles)
                 .build();
     }
@@ -43,6 +43,7 @@ public class Utils {
                 .isActive(user.getIsActive())
                 .nextPaymentDate(user.getNextPaymentDate())
                 .subscription(subscription.getName())
+                .subscriptionDefName(subscription.getDefName())
                 .roles(roles)
                 .permissions(permissions)
                 .build();
