@@ -21,7 +21,7 @@ public class StudentsResponseToTeacherDTO {
 
     private LocalDateTime nextPaymentDate;
 
-    private SubscriptionResponseDTO subscription;
+    private SimpleSubscriptionResponseDTO subscription;
 
     private LocalDateTime createdAt;
 

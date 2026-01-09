@@ -161,7 +161,7 @@ public class User {
                 .username(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
                 .nextPaymentDate(user.getNextPaymentDate())
-                .subscription(Subscription.subscriptionToDto(user.getSubscription()))
+                .subscription(Subscription.simpleSubscriptionDto(user.getSubscription()))
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
