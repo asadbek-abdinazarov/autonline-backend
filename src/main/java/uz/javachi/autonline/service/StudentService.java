@@ -67,6 +67,14 @@ public class StudentService {
                 throw new RuntimeException(ms.get("password.not.match"));
             }
 
+            if (userRepository.findByUsername(dto.getUsername()).isPresent()){
+                throw new RuntimeException(ms.get("user.already.exists.with.username"));
+            }
+
+            if (userRepository.findByPhoneNumber(dto.getPhoneNumber()).isPresent()){
+                throw new RuntimeException(ms.get("user.already.exists.with.phone"));
+            }
+
             User teacher = userRepository.findById(teacherId)
                     .orElseThrow(() -> new UsernameNotFoundException(ms.get("user.not.found")));
 
