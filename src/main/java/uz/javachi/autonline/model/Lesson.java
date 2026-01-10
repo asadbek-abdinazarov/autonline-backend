@@ -19,6 +19,7 @@ public class Lesson {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer lessonId;
 
+    @Column(name = "lesson_icon")
     private String lessonIcon;
 
     @Column(name = "views_count")
@@ -31,15 +32,4 @@ public class Lesson {
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 50)
     private List<Question> questions = new ArrayList<>();
-
-    @Override
-    public String toString() {
-        return "Lesson{" +
-                "lessonId=" + lessonId +
-                ", lessonIcon='" + lessonIcon + '\'' +
-                ", viewsCount=" + viewsCount +
-                ", translations=" + translations +
-                ", questions=" + questions +
-                '}';
-    }
 }
