@@ -81,6 +81,7 @@ public class StudentService {
             if (teacher.hasRole(ROLE_TEACHER)) {
                 throw new RuntimeException(ms.get("you.are.not.teacher"));
             }
+
             Subscription subscription = teacher.getSubscription();
 
             LocalDateTime nextPaymentDate = dto.getNextPaymentDate();
