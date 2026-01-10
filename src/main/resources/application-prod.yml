@@ -13,7 +13,6 @@ spring:
       hibernate:
         format_sql: false
         use_sql_comments: false
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
 # JWT Configuration
 app:
   jwt:
