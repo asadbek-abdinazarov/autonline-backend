@@ -4,8 +4,6 @@ import lombok.*;
 import org.springframework.data.domain.Page;
 import uz.javachi.autonline.projection.LessonHistoryProjection;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Builder

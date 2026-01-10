@@ -17,6 +17,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
 
     @Query(nativeQuery = true, value = """
             select * from lesson where lesson_id = :lessonId
+            order by lesson_id
             """)
     Optional<Lesson> findByLessonId(@Param("lessonId") Integer lessonId);
 
@@ -49,28 +50,9 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
                    AND lt.lang = :lang
                 GROUP BY
                     l.lesson_id, lt.name, lt.description, l.lesson_icon, l.views_count
+                ORDER BY l.lesson_id
             """)
     List<LessonAnonsProjection> findAllWithTranslations(@Param("lang") String lang);
-
-    @Query(
-            value = "SELECT lesson_id FROM lesson ORDER BY RANDOM() LIMIT :interval",
-            nativeQuery = true
-    )
-    List<Integer> findRandomLessons(@Param("interval") Integer interval);
-
-    @Query(value = """
-            SELECT DISTINCT l.*
-            FROM lesson l
-            JOIN question q ON q.lesson_id = l.lesson_id
-            WHERE l.lesson_id IN (:lessonIds)
-              AND q.question_id IN (:questionIds)
-            limit :interval
-            """, nativeQuery = true)
-    List<Lesson> loadLessonsWithQuestionsAndVariants(
-            @Param("lessonIds") List<Integer> lessonIds,
-            @Param("questionIds") List<Integer> questionIds,
-            @Param("lang") String lang,
-            @Param("interval") Integer interval);
 
     @Query(nativeQuery = true, value = """
             select * from lesson where lesson_id = :randomLessonId

@@ -100,7 +100,7 @@ public class StudentService {
             switch (sub) {
                 case BASIC_TEACHER ->
                         subscriptionRepository.findByName(STUDENT_BASIC).ifPresent(student::setSubscription);
-                case RPO_TEACHER -> subscriptionRepository.findByName(STUDENT_RPO).ifPresent(student::setSubscription);
+                case PRO_TEACHER -> subscriptionRepository.findByName(STUDENT_RPO).ifPresent(student::setSubscription);
                 case FULL_TEACHER ->
                         subscriptionRepository.findByName(STUDENT_FULL).ifPresent(student::setSubscription);
                 default -> throw new UserManyStudentsException(ms.get("teacher.free.subscription"));
