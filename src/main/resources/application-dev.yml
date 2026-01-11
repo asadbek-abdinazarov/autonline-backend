@@ -16,7 +16,7 @@ spring:
 # JWT Configuration
 app:
   cors:
-    allowed-origins: https://autonline.uz,https://a.panel.autonline.uz,http://localhost:3000,https://autonline-production.up.railway.app,https://autonline-admin-panel-production.up.railway.app,http://localhost:3001,http://localhost:8080
+    allowed-origins: https://autonline.uz,https://www.autonline.uz,http://localhost:3000,https://autonline-production.up.railway.app,https://autonline-admin-panel-production.up.railway.app,http://localhost:3001,http://localhost:8080
   jwt:
     secret: ${A_JWT_SECRET:feD65K4oszTmBRZIpO94QVgrqFaByXh72z7cENrVRDIqama4jKsdBAjA14StehYaH0D35Hen5skXYPmhNfY62ZDM1Klo24Jp1pZmTBH6qxsLfFYOSiScncyj9r8iiprRpIHFSVSSbF14CmVxJFdYHHXxDZQQrIA77PwKYFV0NoErQLIo0CZoISDFd7NxecmWmHlqRWSW}
     expiration: ${A_JWT_EXPIRATION:86400000} # 24 hours in milliseconds
