@@ -1,30 +1,21 @@
-package uz.javachi.autonline.dto.response;
+package uz.javachi.autonline.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class JwtResponse {
-    private String accessToken;
-    private String refreshToken;
-    @Builder.Default
-    private String type = "Bearer";
+public class SimpleUserDto {
     private Integer id;
     private String username;
     private String fullName;
     private String phoneNumber;
     private String subscription;
     private String subscriptionDefName;
-    private String sessionId;
     private Boolean isActive;
     private LocalDateTime nextPaymentDate;
     private List<String> roles;

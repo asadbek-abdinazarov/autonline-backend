@@ -98,7 +98,9 @@ public class CustomUserDetails implements UserDetails {
         }
 
         allPermissions.forEach(permission ->
-                authorities.add(new SimpleGrantedAuthority(permission.getName().toUpperCase()))
+                {
+                    authorities.add(new SimpleGrantedAuthority(permission.getName().toUpperCase()));
+                }
         );
 
         return authorities;

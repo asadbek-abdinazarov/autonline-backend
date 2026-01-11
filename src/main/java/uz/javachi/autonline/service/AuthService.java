@@ -27,10 +27,7 @@ import uz.javachi.autonline.repository.RoleRepository;
 import uz.javachi.autonline.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static uz.javachi.autonline.DefaultValues.DEFAULT_USER_ROLE;
 import static uz.javachi.autonline.DefaultValues.DEFAULT_SUBSCRIPTION;
@@ -80,13 +77,14 @@ public class AuthService {
 
         Subscription subscription = user.getSubscription();
         List<String> roles = getRoles(user);
-        List<String> rolePermissions = getPermissions(user);
-        List<String> subscriptionPermissions = getActivePermissionNames(subscription);
+
+        List<String> permissions = new ArrayList<>(getPermissions(user));
+        permissions.addAll(getActivePermissionNames(subscription));
 
 
-        Result result = getResult(authentication, sessionId, roles, rolePermissions, user);
+        Result result = getResult(authentication, sessionId, roles, permissions);
         log.info("✅ Foydalanuvchi muvaffaqiyatli tizimga kirdi: {}", loginRequest.getUsername());
-        return buildJwtResponse(result.accessToken(), result.refreshToken(), user, subscription, subscriptionPermissions, rolePermissions, roles, sessionId);
+        return buildJwtResponse(result.accessToken(), result.refreshToken(), user, subscription, roles, permissions, sessionId);
     }
 
 
@@ -118,8 +116,6 @@ public class AuthService {
         newUser.setNextPaymentDate(LocalDateTime.now().plusDays(7));
         userRepository.save(newUser);
 
-        List<String> activePermissions = getActivePermissionNames(freeSubscription);
-
         String ip = httpReq.getRemoteAddr();
         String ua = httpReq.getHeader("User-Agent");
         String sessionId = sessionService.createSession(newUser.getUserId(), ip, ua);
@@ -129,23 +125,25 @@ public class AuthService {
 
         // Pre-compute roles and permissions
         List<String> roles = getRoles(newUser);
-        List<String> rolePermissions = getPermissions(newUser);
+        List<String> permissions = new ArrayList<>(getPermissions(newUser));
+        permissions.addAll(getActivePermissionNames(freeSubscription));
+
 
         // Generate tokens with all claims in one go
-        Result result = getResult(authentication, sessionId, roles, rolePermissions, newUser);
+        Result result = getResult(authentication, sessionId, roles, permissions);
 
         log.info("✅ Foydalanuvchi muvaffaqiyatli ro‘yxatdan o‘tdi: {}", newUser.getUsername());
 
-        return buildJwtResponse(result.accessToken(), result.refreshToken(), newUser, freeSubscription, activePermissions, rolePermissions, roles, sessionId);
+        return buildJwtResponse(result.accessToken(), result.refreshToken(), newUser, freeSubscription, roles, permissions, sessionId);
     }
 
-    private Result getResult(Authentication authentication, String sessionId, List<String> roles, List<String> rolePermissions, User newUser) {
+    private Result getResult(Authentication authentication, String sessionId, List<String> roles, List<String> permissions) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
         Map<String, Object> claims = new java.util.HashMap<>();
         claims.put("sessionId", sessionId);
         claims.put("roles", roles);
-        claims.put("permissions", rolePermissions);
+        claims.put("permissions", permissions);
 
         String accessToken = jwtUtils.generateToken(userDetails, claims);
         String refreshToken = jwtUtils.generateRefreshToken(userDetails.getUsername());
@@ -271,7 +269,7 @@ public class AuthService {
         // Get or create session
         String sessionId;
         List<UserSession> activeSessions = sessionService.listActiveSessions(user.getUserId());
-        
+
         if (activeSessions.isEmpty()) {
             // Create new session if no active session exists
             String ip = httpReq.getRemoteAddr();
@@ -290,8 +288,8 @@ public class AuthService {
         // Generate new tokens
         Subscription subscription = user.getSubscription();
         List<String> roles = getRoles(user);
-        List<String> rolePermissions = getPermissions(user);
-        List<String> subscriptionPermissions = getActivePermissionNames(subscription);
+        List<String> permissions = new ArrayList<>(getPermissions(user));
+        permissions.addAll(getActivePermissionNames(subscription));
 
         // Create authentication object
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -300,32 +298,32 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Generate new tokens
-        Result result = getResult(authentication, sessionId, roles, rolePermissions, user);
+        Result result = getResult(authentication, sessionId, roles, permissions);
 
         log.debug("✅ Refresh token successful for user: {}", username);
 
-        return buildJwtResponse(result.accessToken(), result.refreshToken(), user, subscription, 
-                subscriptionPermissions, rolePermissions, roles, sessionId);
+        return buildJwtResponse(result.accessToken(), result.refreshToken(), user, subscription,
+                permissions, roles, sessionId);
     }
 
     public String logout(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return HttpStatus.BAD_REQUEST.name();
         }
-        
+
         try {
             String token = authHeader.substring(7).trim();
             if (!jwtUtils.validateToken(token)) {
                 return HttpStatus.UNAUTHORIZED.name();
             }
-            
+
             String sessionId = jwtUtils.extractSessionId(token);
             if (sessionId != null) {
                 sessionService.logoutSession(sessionId);
             }
-            
+
             SecurityContextHolder.clearContext();
-            
+
             return HttpStatus.OK.name();
         } catch (Exception e) {
             log.error("Error during logout: {}", e.getMessage(), e);

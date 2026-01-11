@@ -41,8 +41,8 @@ public class User {
 
     private String fullName;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
+    @NotBlank(message = "{password.notBlank}")
+    @Size(min = 8, message = "{password.length}")
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -161,7 +161,7 @@ public class User {
                 .username(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
                 .nextPaymentDate(user.getNextPaymentDate())
-                .subscription(Subscription.subscriptionToDto(user.getSubscription()))
+                .subscription(Subscription.simpleSubscriptionDto(user.getSubscription()))
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

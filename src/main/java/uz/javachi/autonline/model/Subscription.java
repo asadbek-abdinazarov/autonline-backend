@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uz.javachi.autonline.dto.response.SimpleSubscriptionResponseDTO;
 import uz.javachi.autonline.dto.response.SubscriptionResponseDTO;
 
 import java.time.LocalDateTime;
@@ -64,9 +65,18 @@ public class Subscription {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    private Integer activeDays;
+
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "subscription_features",
+            joinColumns = @JoinColumn(name = "subscription_id")
+    )
+    @OrderColumn(name = "order_index")
+    @Column(name = "feature")
     private List<String> features;
+
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -102,7 +112,7 @@ public class Subscription {
         return SubscriptionResponseDTO.builder()
                 .subscriptionId(subscription.getSubscriptionId())
                 .name(subscription.getName())
-                .defName(subscription.getDefName())
+                .subscriptionDefName(subscription.getDefName())
                 .features(subscription.getFeatures())
                 .price(subscription.getPrice())
                 .buyText(subscription.getBuyText())
@@ -116,6 +126,21 @@ public class Subscription {
                 .createdAt(subscription.getCreatedAt())
                 .updatedAt(subscription.getUpdatedAt())
                 .deletedAt(subscription.getDeletedAt())
+                .build();
+    }
+
+    public static SimpleSubscriptionResponseDTO simpleSubscriptionDto(Subscription subscription) {
+        return SimpleSubscriptionResponseDTO.builder()
+                .id(subscription.getSubscriptionId())
+                .name(subscription.getName())
+                .defName(subscription.getDefName())
+                .features(subscription.getFeatures())
+                .price(subscription.getPrice())
+                .buyText(subscription.getBuyText())
+                .description(subscription.getDescription())
+                .orderIndex(subscription.getOrderIndex())
+                .isPopular(subscription.getIsPopular())
+                .isActive(subscription.getIsActive())
                 .build();
     }
 }
