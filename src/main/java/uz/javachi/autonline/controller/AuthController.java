@@ -16,7 +16,7 @@ import uz.javachi.autonline.service.AuthService;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
-//@CrossOrigin(origins = {"http://localhost:3000", "https://autonline-production.up.railway.app", "https://autonline.uz", "http://localhost:8080"}, maxAge = 3600)
+@CrossOrigin(origins = {"http://localhost:3000", "https://autonline-production.up.railway.app", "https://www.autonline.uz", "https://a.panel.autonline.uz", "http://localhost:8080"}, maxAge = 3600)
 public class AuthController {
 
     private final AuthService authService;
