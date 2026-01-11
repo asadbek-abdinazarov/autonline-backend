@@ -32,15 +32,9 @@ public class SwaggerConfig {
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
-             /*           new Server()
-                                .url("http://api.milliyway.uz")
-                                .description("Production Server"),*/
                         new Server()
                                 .url("http://localhost:8080")
-                                .description("Test Server"),
-                        new Server()
-                                .url("http://167.71.28.250:8084/")
-                                .description("Development Server")
+                                .description("Test Server")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
                 .components(new Components()
