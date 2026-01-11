@@ -7,9 +7,9 @@ public class DefaultValues {
     public static final String ROLE_STUDENT = "STUDENT";
 
     public static final String DEFAULT_SUBSCRIPTION = "FREE";
-    public static final String BASIC_SUBSCRIPTION = "BASIC";
-    public static final String PRO_SUBSCRIPTION = "PRO";
-    public static final String FULL_SUBSCRIPTION = "FULL";
+//    public static final String BASIC_SUBSCRIPTION = "BASIC";
+//    public static final String PRO_SUBSCRIPTION = "PRO";
+//    public static final String FULL_SUBSCRIPTION = "FULL";
 
     public static final String BASIC_TEACHER = "BASIC_TEACHER";
     public static final String PRO_TEACHER = "PRO_TEACHER";
