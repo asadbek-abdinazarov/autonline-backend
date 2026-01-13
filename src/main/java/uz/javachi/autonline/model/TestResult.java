@@ -46,24 +46,29 @@ public class TestResult {
 
     public static TestResultResponse toResponseDto(TestResult tr) {
 
-        Duration duration = Duration.between(
-                tr.getStartedAt(),
-                tr.getFinishedAt()
-        );
+        LocalDateTime start = tr.getStartedAt();
+        LocalDateTime finish = tr.getFinishedAt();
+
+        String duration = null;
+
+        if (start != null && finish != null) {
+            Duration d = Duration.between(start, finish);
+            duration = String.format(
+                    "%02d:%02d:%02d",
+                    d.toHours(),
+                    d.toMinutesPart(),
+                    d.toSecondsPart()
+            );
+        }
 
         return TestResultResponse.builder()
                 .id(tr.getId())
                 .score(tr.getScore())
-                .duration(
-                        String.format("%02d:%02d:%02d",
-                                duration.toHours(),
-                                duration.toMinutesPart(),
-                                duration.toSecondsPart())
-                )
-                .startedAt(tr.getStartedAt())
-                .finishedAt(tr.getFinishedAt())
+                .duration(duration)
+                .startedAt(start)
+                .finishedAt(finish)
                 .attemptNumber(tr.getAttemptNumber())
-                .status(tr.getStatus().name())
+                .status(tr.getStatus() != null ? tr.getStatus().name() : null)
                 .build();
     }
 
