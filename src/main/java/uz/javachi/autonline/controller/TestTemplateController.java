@@ -7,8 +7,8 @@ import uz.javachi.autonline.dto.request.TestFinishRequest;
 import uz.javachi.autonline.dto.request.TestStartRequest;
 import uz.javachi.autonline.dto.response.FinishResponseDTO;
 import uz.javachi.autonline.dto.response.StartedResponseDTO;
-import uz.javachi.autonline.dto.response.TestTemplateResponseDTO;
 import uz.javachi.autonline.service.TestTemplateService;
+import uz.javachi.autonline.dto.response.TestTemplateResponseDTO;
 
 import java.util.List;
 
