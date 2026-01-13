@@ -32,6 +32,7 @@ public class TestResult {
     private TestTemplate testTemplate;
 
     private Integer score;
+    private Integer percentage;
     private Integer correctCount;
     private Integer wrongCount;
 
@@ -64,6 +65,7 @@ public class TestResult {
         return TestResultResponse.builder()
                 .id(tr.getId())
                 .score(tr.getScore())
+                .percentage(tr.getPercentage())
                 .duration(duration)
                 .startedAt(start)
                 .finishedAt(finish)

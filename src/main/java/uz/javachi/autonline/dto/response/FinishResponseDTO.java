@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class FinishResponseDTO {
     private Long testResultId;
     private Integer score;
+    private Integer percentage;
     private Integer correctCount;
     private Integer wrongCount;
     private LocalDateTime startedAt;

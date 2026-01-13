@@ -9,10 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.dto.request.TestFinishRequest;
 import uz.javachi.autonline.dto.request.TestStartRequest;
-import uz.javachi.autonline.dto.response.FinishResponseDTO;
-import uz.javachi.autonline.dto.response.QuestionResponseDTO;
-import uz.javachi.autonline.dto.response.StartedResponseDTO;
-import uz.javachi.autonline.dto.response.TestTemplateResponseDTO;
+import uz.javachi.autonline.dto.response.*;
 import uz.javachi.autonline.enums.TestStatus;
 import uz.javachi.autonline.exceptions.CustomException;
 import uz.javachi.autonline.model.Question;
@@ -26,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static uz.javachi.autonline.DefaultValues.TEMPLATE_LESSON_COUNT;
 import static uz.javachi.autonline.DefaultValues.TEMPLATE_LESSON_ID;
 import static uz.javachi.autonline.utils.Utils.getQuestionResponseDTOS;
 
@@ -39,6 +37,7 @@ public class TestTemplateService {
     private final TestResultRepository testResultRepository;
     private final LessonRepository lessonRepository;
     private final QuestionRepository questionRepository;
+    private final LessonHistoryService lessonHistoryService;
 
 
     @Transactional(readOnly = true)
@@ -94,14 +93,20 @@ public class TestTemplateService {
         TestTemplate testTemplate = byIdTemplate.get();
         Integer testTemplateId = testTemplate.getTestTemplateId();
 
-        TestResult result = TestResult.builder()
+        Optional<TestResult> lastNotFinishedTestResult = testResultRepository.findLastAndNotFinishedAndByTemplateId(testTemplateId);
+
+        TestResult result;
+        result = lastNotFinishedTestResult.orElseGet(() -> TestResult.builder()
                 .startedAt(LocalDateTime.now())
                 .testTemplate(testTemplate)
                 .user(user)
                 .wrongCount(0)
+                .percentage(0)
+                .status(TestStatus.IN_PROCESS)
                 .correctCount(0)
                 .attemptNumber(testTemplateId)
-                .build();
+                .build());
+
         testResultRepository.saveAndFlush(result);
 
         List<TestResult> testResults = testTemplate.getTestResults();
@@ -156,11 +161,23 @@ public class TestTemplateService {
                 dto.score() >= passScore ? TestStatus.PASSED : TestStatus.FAILED
         );
         testResultRepository.save(result);
+
+        lessonHistoryService.createLessonHistory(
+                LessonHistoryDTO.builder()
+                        .lessonId(TEMPLATE_LESSON_ID)
+                        .correctAnswersCount(result.getCorrectCount())
+                        .notCorrectAnswersCount(result.getWrongCount())
+                        .percentage(result.getPercentage())
+                        .allQuestionsCount(TEMPLATE_LESSON_COUNT)
+                        .build()
+        );
+
         return FinishResponseDTO.builder()
                 .testResultId(result.getId())
-                .correctCount(dto.correctCount())
-                .wrongCount(dto.wrongCount())
-                .score(dto.score())
+                .correctCount(result.getCorrectCount())
+                .wrongCount(result.getWrongCount())
+                .score(result.getScore())
+                .percentage(result.getPercentage())
                 .startedAt(result.getStartedAt())
                 .finishedAt(result.getFinishedAt())
                 .build();

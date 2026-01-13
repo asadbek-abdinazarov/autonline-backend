@@ -2,5 +2,6 @@ package uz.javachi.autonline.enums;
 
 public enum TestStatus {
     PASSED,
-    FAILED;
+    FAILED,
+    IN_PROCESS;
 }

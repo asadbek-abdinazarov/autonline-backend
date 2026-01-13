@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class TestResultResponse {
     private Long id;
     private Integer score;
+    private Integer percentage;
     private String status;
     private Integer attemptNumber;
     private String duration;
