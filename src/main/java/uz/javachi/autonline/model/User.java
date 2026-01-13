@@ -85,6 +85,10 @@ public class User {
     )
     private Subscription subscription;
 
+
+    @OneToMany(mappedBy = "user")
+    private List<TestResult> testResults;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
