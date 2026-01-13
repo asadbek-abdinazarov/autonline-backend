@@ -21,18 +21,18 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
             """)
     Optional<Lesson> findByLessonId(@Param("lessonId") Integer lessonId);
 
-    @SuppressWarnings("unused")
-    @Query(nativeQuery = true,
-            value = """
-                        select l from Lesson l
-                        left join lesson_translation lt on l.lesson_id = lt.lesson_id
-                        left join question q on q.lesson_id = l.lesson_id
-                        left join question_translation qt on qt.question_id = q.question_id
-                        left join variants v on v.question_id = q.question_id
-                        left join variant_translation vt on vt.variant_id = v.variant_id
-                        where l.lesson_id = :id
-                    """)
-    Optional<Lesson> getLessonFull(@Param("id") Integer id);
+    @Query("""
+            SELECT l.lessonId, l.lessonIcon, lt.name, lt.description
+            FROM Lesson l
+            JOIN l.translations lt
+            WHERE l.lessonId = :lessonId
+              AND lt.lang = :lang
+            """)
+    Object[] getLessonWithTranslation(
+            @Param("lessonId") Integer lessonId,
+            @Param("lang") String lang
+    );
+
 
     @Query(nativeQuery = true, value = """
                 SELECT

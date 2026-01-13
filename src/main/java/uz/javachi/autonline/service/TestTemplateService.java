@@ -1,27 +1,33 @@
 package uz.javachi.autonline.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.javachi.autonline.dto.request.TestFinishRequest;
 import uz.javachi.autonline.dto.request.TestStartRequest;
 import uz.javachi.autonline.dto.response.FinishResponseDTO;
+import uz.javachi.autonline.dto.response.QuestionResponseDTO;
 import uz.javachi.autonline.dto.response.StartedResponseDTO;
 import uz.javachi.autonline.dto.response.TestTemplateResponseDTO;
 import uz.javachi.autonline.enums.TestStatus;
 import uz.javachi.autonline.exceptions.CustomException;
+import uz.javachi.autonline.model.Question;
 import uz.javachi.autonline.model.TestResult;
 import uz.javachi.autonline.model.TestTemplate;
 import uz.javachi.autonline.model.User;
-import uz.javachi.autonline.repository.TestResultRepository;
-import uz.javachi.autonline.repository.TestTemplateRepository;
-import uz.javachi.autonline.repository.UserRepository;
+import uz.javachi.autonline.repository.*;
 import uz.javachi.autonline.utils.SecurityUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static uz.javachi.autonline.DefaultValues.TEMPLATE_LESSON_ID;
+import static uz.javachi.autonline.utils.Utils.getQuestionResponseDTOS;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +37,8 @@ public class TestTemplateService {
     private final UserRepository userRepository;
     private final MessageService ms;
     private final TestResultRepository testResultRepository;
+    private final LessonRepository lessonRepository;
+    private final QuestionRepository questionRepository;
 
 
     @Transactional(readOnly = true)
@@ -64,7 +72,7 @@ public class TestTemplateService {
 
     @Transactional
     public StartedResponseDTO startTestTemplate(TestStartRequest dto) {
-
+        String lang = LocaleContextHolder.getLocale().getLanguage();
         Integer currentUserIdOrThrow = SecurityUtils.getCurrentUserIdOrThrow();
 
         Optional<User> byId = userRepository.findById(currentUserIdOrThrow);
@@ -84,6 +92,7 @@ public class TestTemplateService {
         }
 
         TestTemplate testTemplate = byIdTemplate.get();
+        Integer testTemplateId = testTemplate.getTestTemplateId();
 
         TestResult result = TestResult.builder()
                 .startedAt(LocalDateTime.now())
@@ -91,7 +100,7 @@ public class TestTemplateService {
                 .user(user)
                 .wrongCount(0)
                 .correctCount(0)
-                .attemptNumber(testTemplate.getTestTemplateId())
+                .attemptNumber(testTemplateId)
                 .build();
         testResultRepository.saveAndFlush(result);
 
@@ -104,10 +113,32 @@ public class TestTemplateService {
 
         testTemplateRepository.saveAndFlush(testTemplate);
 
+        Object[] row = lessonRepository.getLessonWithTranslation(TEMPLATE_LESSON_ID, lang);
+        Object[] rs = (Object[]) row[0];
+        Integer lessonId = (Integer) rs[0];
+        String icon = (String) rs[1];
+        String name = (String) rs[2];
+        String description = (String) rs[3];
+
+        int pageSize = 20;
+        int page = testTemplateId - 1;
+
+        Page<Question> questionPage =
+                questionRepository.findByInterval(PageRequest.of(page, pageSize));
+
+        List<Question> questions = questionPage.getContent();
+
+        List<QuestionResponseDTO> questionResponseDTOS = getQuestionResponseDTOS(questions, lang);
+
+
         return StartedResponseDTO.builder()
                 .testResultId(result.getId())
-                .testTemplateId(testTemplate.getTestTemplateId())
-                .status("STARTED")
+                .testTemplateId(testTemplateId)
+                .lessonId(lessonId)
+                .icon(icon)
+                .name(name)
+                .description(description)
+                .questions(questionResponseDTOS)
                 .build();
     }
 

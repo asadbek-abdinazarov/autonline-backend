@@ -28,8 +28,6 @@ public class StatisticService {
     private final PaymentHistoryRepository paymentHistoryRepository;
     private final QuestionRepository questionRepository;
     private final LessonHistoryRepository lessonHistoryRepository;
-    private static final DecimalFormat ONE_DECIMAL = new DecimalFormat("#0.0");
-
 
     @Async("applicationTaskExecutor")
     public CompletableFuture<StatisticResponseDTO> getStatistic() {

@@ -32,9 +32,4 @@ public class TestTemplateController {
     public ResponseEntity<FinishResponseDTO> finishTestTemplate(@RequestBody TestFinishRequest dto){
         return ResponseEntity.ok(testTemplateService.finishTestTemplate(dto));
     }
-
-
-
-
-
 }

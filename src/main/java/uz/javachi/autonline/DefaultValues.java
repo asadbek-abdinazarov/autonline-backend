@@ -21,4 +21,5 @@ public class DefaultValues {
 
 
     public static final Integer RANDOM_LESSON_ID = 43;
+    public static final Integer TEMPLATE_LESSON_ID = 44;
 }

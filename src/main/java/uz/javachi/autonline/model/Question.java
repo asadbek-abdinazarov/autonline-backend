@@ -39,14 +39,4 @@ public class Question {
         this.translations = translations;
         this.variants = variants;
     }
-
-    @Override
-    public String toString() {
-        return "Question{" +
-                "questionId=" + questionId +
-                ", photo='" + photo + '\'' +
-                ", translations=" + translations +
-                ", variants=" + variants +
-                '}';
-    }
 }

@@ -1,19 +1,21 @@
 package uz.javachi.autonline.utils;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import uz.javachi.autonline.config.Localized;
 import uz.javachi.autonline.dto.SimpleUserDto;
 import uz.javachi.autonline.dto.request.RegisterRequest;
 import uz.javachi.autonline.dto.response.JwtResponse;
-import uz.javachi.autonline.model.Permission;
-import uz.javachi.autonline.model.Role;
-import uz.javachi.autonline.model.Subscription;
-import uz.javachi.autonline.model.User;
+import uz.javachi.autonline.dto.response.QuestionResponseDTO;
+import uz.javachi.autonline.dto.response.VariantResponseDTO;
+import uz.javachi.autonline.model.*;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Utils {
     public static JwtResponse buildJwtResponse(String accessToken, String refreshToken, User user, Subscription subscription, List<String> roles, List<String> permissions, String sessionId) {
@@ -84,6 +86,38 @@ public class Utils {
                 .filter(role -> role.getIsActive() && !role.isDeleted())
                 .map(Role::getName)
                 .toList();
+    }
+
+    public static List<QuestionResponseDTO> getQuestionResponseDTOS(List<Question> question, String lang) {
+        return question.stream()
+                .map(q -> {
+                    QuestionResponseDTO qdto = new QuestionResponseDTO();
+                    qdto.setQuestionId(q.getQuestionId());
+                    qdto.setPhoto(q.getPhoto());
+                    QuestionTranslation qt = findTranslation(q.getTranslations(), lang);
+                    qdto.setQuestionText(qt != null ? qt.getQuestionText() : null);
+
+                    List<VariantResponseDTO> vs = q.getVariants().stream()
+                            .map(v -> {
+                                VariantResponseDTO vd = new VariantResponseDTO();
+                                vd.setVariantId(v.getVariantId());
+                                vd.setIsCorrect(v.getIsCorrect());
+                                VariantTranslation vt = findTranslation(v.getTranslations(), lang);
+                                vd.setText(vt != null ? vt.getText() : null);
+                                return vd;
+                            }).collect(Collectors.toList());
+                    qdto.setVariants(vs);
+                    return qdto;
+                }).collect(Collectors.toList());
+    }
+
+    public static <X extends Localized> X findTranslation(Collection<X> translations, String lang) {
+        if (translations == null || translations.isEmpty()) return null;
+
+        return translations.stream()
+                .filter(t -> lang.equalsIgnoreCase(t.getLang()))
+                .findFirst()
+                .orElse(null);
     }
 
     public static String urlEncoder(String input) {

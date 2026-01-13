@@ -9,22 +9,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
-import uz.javachi.autonline.config.Localized;
 import uz.javachi.autonline.dto.response.LessonResponseDTO;
 import uz.javachi.autonline.dto.response.QuestionResponseDTO;
-import uz.javachi.autonline.dto.response.VariantResponseDTO;
 import uz.javachi.autonline.exceptions.IntervalInvalidException;
-import uz.javachi.autonline.model.*;
+import uz.javachi.autonline.model.Lesson;
+import uz.javachi.autonline.model.LessonTranslation;
+import uz.javachi.autonline.model.Question;
 import uz.javachi.autonline.projection.LessonAnonsProjection;
 import uz.javachi.autonline.repository.LessonRepository;
 import uz.javachi.autonline.repository.QuestionRepository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static uz.javachi.autonline.DefaultValues.RANDOM_LESSON_ID;
+import static uz.javachi.autonline.utils.Utils.*;
 
 @Slf4j
 @Service
@@ -66,38 +65,6 @@ public class LessonService {
 
         dto.setQuestions(qs);
         return dto;
-    }
-
-    private List<QuestionResponseDTO> getQuestionResponseDTOS(List<Question> question, String lang) {
-        return question.stream()
-                .map(q -> {
-                    QuestionResponseDTO qdto = new QuestionResponseDTO();
-                    qdto.setQuestionId(q.getQuestionId());
-                    qdto.setPhoto(q.getPhoto());
-                    QuestionTranslation qt = findTranslation(q.getTranslations(), lang);
-                    qdto.setQuestionText(qt != null ? qt.getQuestionText() : null);
-
-                    List<VariantResponseDTO> vs = q.getVariants().stream()
-                            .map(v -> {
-                                VariantResponseDTO vd = new VariantResponseDTO();
-                                vd.setVariantId(v.getVariantId());
-                                vd.setIsCorrect(v.getIsCorrect());
-                                VariantTranslation vt = findTranslation(v.getTranslations(), lang);
-                                vd.setText(vt != null ? vt.getText() : null);
-                                return vd;
-                            }).collect(Collectors.toList());
-                    qdto.setVariants(vs);
-                    return qdto;
-                }).collect(Collectors.toList());
-    }
-
-    private <X extends Localized> X findTranslation(Collection<X> translations, String lang) {
-        if (translations == null || translations.isEmpty()) return null;
-
-        return translations.stream()
-                .filter(t -> lang.equalsIgnoreCase(t.getLang()))
-                .findFirst()
-                .orElse(null);
     }
 
     public List<LessonAnonsProjection> getLessonsAnons() {
