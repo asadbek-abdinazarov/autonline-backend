@@ -14,6 +14,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import uz.javachi.autonline.config.LocaleCopyingTaskDecorator;
 
+import java.util.TimeZone;
+
 import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
 @Slf4j
@@ -30,6 +32,7 @@ public class AutonlineApplication {
 
     @PostConstruct
     public void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tashkent"));
         log.info("✅Dastur ishga tushirildi...");
     }
 
