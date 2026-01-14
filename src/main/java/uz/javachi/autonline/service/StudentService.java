@@ -48,7 +48,7 @@ public class StudentService {
                 .orElseThrow(() -> new UsernameNotFoundException(ms.get("user.not.found")));
 
         if (teacher.hasRole(ROLE_TEACHER)) {
-            throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("you.are.not.teacher")));
+            throw new CustomException(ms.get("you.are.not.teacher"), new Throwable(HttpStatus.BAD_REQUEST.name()));
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
@@ -65,22 +65,22 @@ public class StudentService {
             Integer teacherId = SecurityUtils.getCurrentUserIdOrThrow();
 
             if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("password.not.match")));
+                throw new CustomException(ms.get("password.not.match"), new Throwable(HttpStatus.BAD_REQUEST.name()));
             }
 
-            if (userRepository.findByUsername(dto.getUsername()).isPresent()){
-                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("user.already.exists.with.username")));
+            if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
+                throw new CustomException(ms.get("user.already.exists.with.username"), new Throwable(HttpStatus.BAD_REQUEST.name()));
             }
 
-            if (userRepository.findByPhoneNumber(dto.getPhoneNumber()).isPresent()){
-                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("user.already.exists.with.phone")));
+            if (userRepository.findByPhoneNumber(dto.getPhoneNumber()).isPresent()) {
+                throw new CustomException(ms.get("user.already.exists.with.phone"), new Throwable(HttpStatus.BAD_REQUEST.name()));
             }
 
             User teacher = userRepository.findById(teacherId)
                     .orElseThrow(() -> new UsernameNotFoundException(ms.get("user.not.found")));
 
             if (teacher.hasRole(ROLE_TEACHER)) {
-                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("you.are.not.teacher")));
+                throw new CustomException(ms.get("you.are.not.teacher"), new Throwable(HttpStatus.BAD_REQUEST.name()));
             }
 
             Subscription subscription = teacher.getSubscription();
@@ -135,7 +135,7 @@ public class StudentService {
                 .orElseThrow(() -> new UsernameNotFoundException(ms.get("user.not.found")));
 
         if (teacher.hasRole(ROLE_TEACHER)) {
-            throw new RuntimeException(ms.get("you.are.not.teacher"));
+            throw new CustomException(ms.get("you.are.not.teacher"), new Throwable(HttpStatus.BAD_REQUEST.name()));
         }
 
         User student = userRepository.findStudentOfTeacher(currentUserId, id)
@@ -152,7 +152,7 @@ public class StudentService {
                 .orElseThrow(() -> new UsernameNotFoundException(ms.get("user.not.found")));
 
         if (teacher.hasRole(ROLE_TEACHER)) {
-            throw new RuntimeException(ms.get("you.are.not.teacher"));
+            throw new CustomException(ms.get("you.are.not.teacher"), new Throwable(HttpStatus.BAD_REQUEST.name()));
         }
 
         User student = userRepository.findById(id)
