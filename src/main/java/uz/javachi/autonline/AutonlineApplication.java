@@ -33,6 +33,9 @@ public class AutonlineApplication {
     @PostConstruct
     public void init() {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tashkent"));
+        TimeZone aDefault = TimeZone.getDefault();
+        log.info("Using default timezone: {}", aDefault);
+        log.info("Using default timezone: {}", aDefault.getDisplayName());
         log.info("✅Dastur ishga tushirildi...");
     }
 

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class StudentService {
                 .orElseThrow(() -> new UsernameNotFoundException(ms.get("user.not.found")));
 
         if (teacher.hasRole(ROLE_TEACHER)) {
-            throw new RuntimeException(ms.get("you.are.not.teacher"));
+            throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("you.are.not.teacher")));
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
@@ -64,22 +65,22 @@ public class StudentService {
             Integer teacherId = SecurityUtils.getCurrentUserIdOrThrow();
 
             if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-                throw new RuntimeException(ms.get("password.not.match"));
+                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("password.not.match")));
             }
 
             if (userRepository.findByUsername(dto.getUsername()).isPresent()){
-                throw new RuntimeException(ms.get("user.already.exists.with.username"));
+                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("user.already.exists.with.username")));
             }
 
             if (userRepository.findByPhoneNumber(dto.getPhoneNumber()).isPresent()){
-                throw new RuntimeException(ms.get("user.already.exists.with.phone"));
+                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("user.already.exists.with.phone")));
             }
 
             User teacher = userRepository.findById(teacherId)
                     .orElseThrow(() -> new UsernameNotFoundException(ms.get("user.not.found")));
 
             if (teacher.hasRole(ROLE_TEACHER)) {
-                throw new RuntimeException(ms.get("you.are.not.teacher"));
+                throw new CustomException(HttpStatus.BAD_REQUEST.name(), new Throwable(ms.get("you.are.not.teacher")));
             }
 
             Subscription subscription = teacher.getSubscription();
