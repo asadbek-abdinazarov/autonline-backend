@@ -26,6 +26,8 @@ public class Question {
     @JoinColumn(name = "lesson_id")
     private Lesson lesson;
 
+    private Boolean isActive;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 50)
     private List<QuestionTranslation> translations = new ArrayList<>();

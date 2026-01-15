@@ -16,7 +16,7 @@ public class DefaultValues {
     public static final String FULL_TEACHER = "FULL_TEACHER";
 
     public static final String STUDENT_BASIC = "STUDENT_BASIC";
-    public static final String STUDENT_RPO = "STUDENT_RPO";
+    public static final String STUDENT_PRO = "STUDENT_PRO";
     public static final String STUDENT_FULL = "STUDENT_FULL";
 
 

@@ -26,6 +26,52 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             Pageable pageable
     );
 
+    @Query(nativeQuery = true, value = """
+            WITH lesson_stats AS (
+                SELECT
+                    lesson_id,
+                    COUNT(*) as total_questions
+                FROM question
+                WHERE is_active = true
+                    AND lesson_id NOT IN (43, 44)
+                GROUP BY lesson_id
+            ),
+            template_distribution AS (
+                SELECT
+                    q.question_id,
+                    q.lesson_id,
+                    MOD(
+                        CAST(
+                            ROW_NUMBER() OVER (PARTITION BY q.lesson_id ORDER BY q.question_id) - 1
+                            AS INTEGER
+                        ),
+                        60
+                    ) as template_idx
+                FROM question q
+                INNER JOIN lesson_stats ls ON q.lesson_id = ls.lesson_id
+                WHERE q.is_active = true
+            )
+            SELECT q.*
+            FROM question q
+            WHERE q.question_id IN (
+                SELECT question_id
+                FROM template_distribution
+                WHERE template_idx = :templateIndex
+                ORDER BY RANDOM()
+                LIMIT 20
+            )
+            ORDER BY RANDOM()
+            """)
+    List<Question> findQuestionsForTemplate(@Param("templateIndex") Integer templateIndex);
+
+    @Query(nativeQuery = true, value = """
+            SELECT COUNT(DISTINCT lesson_id)
+            FROM question
+            WHERE is_active = true
+            """)
+    Integer countActiveLessons();
+
+
     @Query(value = """
                 SELECT q.question_id,q.photo , q.lesson_id, qt.question_text
                 FROM question q

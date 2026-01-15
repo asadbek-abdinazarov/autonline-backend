@@ -57,6 +57,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
                 WHERE t.userId = :teacherId
                     AND s.deletedAt IS NULL
                     AND s.isActive = true
+                ORDER BY s.createdAt DESC
             """)
     Page<User> findActiveStudentsByTeacher(@Param("teacherId") Integer teacherId, Pageable pageable);
 

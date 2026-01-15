@@ -51,12 +51,11 @@ public class StudentService {
             throw new CustomException(ms.get("you.are.not.teacher"), new Throwable(HttpStatus.BAD_REQUEST.name()));
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
+        Pageable pageable = PageRequest.of(page, size);
 
         return userRepository.findActiveStudentsByTeacher(currentUserId, pageable)
                 .map(User::studentToDtoForTeacher);
     }
-
 
     @Transactional
     public StudentsResponseToTeacherDTO createStudentToTeacher(TeacherRegisterStudentRequest dto) throws UserManyStudentsException {
@@ -110,13 +109,13 @@ public class StudentService {
             switch (sub) {
                 case BASIC_TEACHER ->
                         subscriptionRepository.findByName(STUDENT_BASIC).ifPresent(student::setSubscription);
-                case PRO_TEACHER -> subscriptionRepository.findByName(STUDENT_RPO).ifPresent(student::setSubscription);
+                case PRO_TEACHER -> subscriptionRepository.findByName(STUDENT_PRO).ifPresent(student::setSubscription);
                 case FULL_TEACHER ->
                         subscriptionRepository.findByName(STUDENT_FULL).ifPresent(student::setSubscription);
                 default -> throw new UserManyStudentsException(ms.get("teacher.free.subscription"));
             }
 
-            userRepository.save(student);
+            userRepository.saveAndFlush(student);
 
             students.add(student);
 
