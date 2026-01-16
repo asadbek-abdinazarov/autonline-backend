@@ -40,6 +40,8 @@ public class Subscription {
 
     private Double price;
 
+    private Double discountedPrice;
+
     @Builder.Default
     private Boolean isPopular = false;
 
@@ -118,6 +120,7 @@ public class Subscription {
                 .buyText(subscription.getBuyText())
                 .description(subscription.getDescription())
                 .orderIndex(subscription.getOrderIndex())
+                .discountedPrice(subscription.getDiscountedPrice())
                 .isPopular(subscription.getIsPopular())
                 .permissions(subscription.getPermissions()
                         .stream().map(Permission::permissionToDto)
@@ -136,6 +139,7 @@ public class Subscription {
                 .defName(subscription.getDefName())
                 .features(subscription.getFeatures())
                 .price(subscription.getPrice())
+                .discountedPrice(subscription.getDiscountedPrice())
                 .buyText(subscription.getBuyText())
                 .description(subscription.getDescription())
                 .orderIndex(subscription.getOrderIndex())

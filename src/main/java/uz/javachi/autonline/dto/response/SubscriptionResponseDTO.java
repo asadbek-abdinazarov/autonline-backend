@@ -15,6 +15,7 @@ public class SubscriptionResponseDTO {
     private String subscriptionDefName;
     private String description;
     private Double price;
+    private Double discountedPrice;
     private String buyText;
     private List<String> features;
     private Boolean isActive;

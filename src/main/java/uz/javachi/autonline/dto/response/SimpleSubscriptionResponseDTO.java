@@ -14,6 +14,7 @@ public class SimpleSubscriptionResponseDTO {
     private String defName;
     private String description;
     private Double price;
+    private Double discountedPrice;
     private String buyText;
     private List<String> features;
     private Boolean isActive;
