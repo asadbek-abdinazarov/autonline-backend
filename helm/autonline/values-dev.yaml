@@ -4,13 +4,14 @@
 replicaCount: 1
 
 image:
-  repository: autonline
+  repository: asadbekabdinazarov/autonline
   pullPolicy: IfNotPresent
   tag: "dev"
 
-# Database configuration (external PostgreSQL)
+# Database configuration (Zalando PostgreSQL operator)
 database:
-  host: "localhost"  # Update with your dev database host
+  # host: "autonline-dev.dev.svc.cluster.local"  # Zalando PostgreSQL service name
+  host: "host.docker.internal"
   port: 5432
   name: "autonline"
   username: "autonline_user"

@@ -36,6 +36,7 @@ public class User {
 
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-z0-9]+$", message = "{username.notValid}")
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
 

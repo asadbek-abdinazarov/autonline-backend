@@ -21,7 +21,7 @@ spec:
       parameters:
         # Image configuration - update with your registry
         - name: image.repository
-          value: autonline
+          value: asadbekabdinazarov/autonline
         - name: image.tag
           value: latest
         - name: image.pullPolicy

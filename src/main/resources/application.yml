@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: prod
+    active: dev
 springdoc:
   swagger-ui:
     persistAuthorization: true
@@ -9,8 +9,3 @@ management:
     web:
       exposure:
         include: health, info, metrics, prometheus
-  jpa:
-    properties:
-      hibernate:
-        jdbc:
-          time_zone: Asia/Tashkent

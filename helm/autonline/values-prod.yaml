@@ -5,17 +5,17 @@
 replicaCount: 2
 
 image:
-  repository: autonline
+  repository: asadbekabdinazarov/autonline
   pullPolicy: Always
   tag: "latest"  # Use specific version tag in production
 
-# Database configuration (external PostgreSQL)
+# Database configuration (Zalando PostgreSQL operator)
 database:
-  host: "postgresql.production.svc.cluster.local"  # Update with your production database host
+  host: "autonline-prod.production.svc.cluster.local"  # Zalando PostgreSQL service name
   port: 5432
   name: "autonline"
   username: "autonline_user"
-  password: ""  # MUST be set via --set or external secret management
+  password: ""  # Zalando operator avtomatik parol yaratadi, secret dan olinadi
   hibernateDdlAuto: "validate"  # Use validate in production, not update
 
 # JWT Configuration
