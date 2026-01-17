@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: autonline-dev
+  namespace: argo-cd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: autonline
+    environment: dev
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/asadbek-abdinazarov/autonline
+    targetRevision: main
+    path: helm/autonline
+    helm:
+      valueFiles:
+        - values-dev.yaml
+      parameters:
+        # Image configuration - update with your registry
+        - name: image.repository
+          value: autonline
+        - name: image.tag
+          value: dev
+        - name: image.pullPolicy
+          value: IfNotPresent
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

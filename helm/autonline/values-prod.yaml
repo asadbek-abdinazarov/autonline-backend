@@ -1,0 +1,103 @@
+# Production environment values
+# This file overrides values.yaml for production
+# IMPORTANT: Set all secret values via --set or external secret management
+
+replicaCount: 2
+
+image:
+  repository: autonline
+  pullPolicy: Always
+  tag: "latest"  # Use specific version tag in production
+
+# Database configuration (external PostgreSQL)
+database:
+  host: "postgresql.production.svc.cluster.local"  # Update with your production database host
+  port: 5432
+  name: "autonline"
+  username: "autonline_user"
+  password: ""  # MUST be set via --set or external secret management
+  hibernateDdlAuto: "validate"  # Use validate in production, not update
+
+# JWT Configuration
+jwt:
+  secret: ""  # MUST be set via --set or external secret management
+  expiration: 86400000 # 24 hours in milliseconds
+  refreshExpiration: 604800000 # 7 days in milliseconds
+
+# Storage configuration (DigitalOcean Spaces / S3)
+storage:
+  accessKey: ""  # MUST be set via --set or external secret management
+  secretKey: ""  # MUST be set via --set or external secret management
+  endpoint: "https://sfo3.digitaloceanspaces.com"
+  region: "sfo3"
+  bucket: "autonline"
+
+# Application configuration
+app:
+  profile: "prod"
+  serverPort: 8080
+  cors:
+    allowedOrigins:
+      - "https://autonline.uz"
+      - "https://www.autonline.uz"
+      - "https://autonline-production.up.railway.app"
+      - "https://autonline-admin-panel-production.up.railway.app"
+  
+  logging:
+    level: "INFO"
+    securityLevel: "WARN"
+    configLevel: "INFO"
+
+# Production resources
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# Enable autoscaling in production
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Enable PDB in production for high availability
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Enable monitoring in production
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /actuator/prometheus
+    labels:
+      release: prometheus
+
+# Production health checks
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: http
+  initialDelaySeconds: 40
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1

@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: autonline-prod
+  namespace: argo-cd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: autonline
+    environment: production
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/asadbek-abdinazarov/autonline
+    targetRevision: main
+    path: helm/autonline
+    helm:
+      valueFiles:
+        - values-prod.yaml
+      parameters:
+        # Image configuration - update with your registry
+        - name: image.repository
+          value: autonline
+        - name: image.tag
+          value: latest
+        - name: image.pullPolicy
+          value: Always
+        
+        # Secret values - MUST be set via Argo CD UI, CLI, or External Secrets
+        # Option 1: Set via Argo CD CLI or UI
+        # Option 2: Use External Secrets Operator
+        # Option 3: Use Sealed Secrets
+        - name: database.password
+          value: ""  # Set via: argocd app set autonline-prod -p database.password=YOUR_PASSWORD
+        - name: jwt.secret
+          value: ""  # Set via: argocd app set autonline-prod -p jwt.secret=YOUR_SECRET
+        - name: storage.accessKey
+          value: ""  # Set via: argocd app set autonline-prod -p storage.accessKey=YOUR_KEY
+        - name: storage.secretKey
+          value: ""  # Set via: argocd app set autonline-prod -p storage.secretKey=YOUR_SECRET
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

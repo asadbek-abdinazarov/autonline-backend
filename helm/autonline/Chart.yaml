@@ -1,0 +1,15 @@
+apiVersion: v2
+name: autonline
+description: A Helm chart for Autonline Spring Boot application
+type: application
+version: 0.1.0
+appVersion: "0.0.1-SNAPSHOT"
+keywords:
+  - spring-boot
+  - java
+  - autonline
+maintainers:
+  - name: Autonline Team
+home: https://autonline-production.up.railway.app
+sources:
+  - https://github.com/asadbek-abdinazarov
