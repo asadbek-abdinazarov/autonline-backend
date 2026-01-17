@@ -12,8 +12,8 @@ spec:
   project: default
   
   source:
-    repoURL: https://github.com/asadbek-abdinazarov/autonline
-    targetRevision: main
+    repoURL: https://github.com/asadbek-abdinazarov/autonline-backend
+    targetRevision: master
     path: helm/autonline
     helm:
       valueFiles:
