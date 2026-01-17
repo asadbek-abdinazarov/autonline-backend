@@ -17,6 +17,9 @@ database:
   username: "autonline_user"
   password: ""  # Zalando operator avtomatik parol yaratadi, secret dan olinadi
   hibernateDdlAuto: "validate"  # Use validate in production, not update
+  # Zalando operator secret name format: {postgresql-name}.{team-id}.credentials.postgresql.acid.zalan.do
+  zalandoSecretName: "autonline-prod.autonline.credentials.postgresql.acid.zalan.do"  # Zalando operator secret name
+  zalandoSecretKey: "password"  # Secret key name
 
 # JWT Configuration
 jwt:

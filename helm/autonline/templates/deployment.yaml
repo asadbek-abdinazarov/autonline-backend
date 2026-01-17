@@ -52,15 +52,29 @@ spec:
         - name: POSTGRES_DB
           value: {{ .Values.database.name | quote }}
         - name: PGUSER
+          {{- if .Values.database.zalandoSecretName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.zalandoSecretName | quote }}
+              key: username
+          {{- else }}
           valueFrom:
             secretKeyRef:
               name: {{ include "autonline.fullname" . }}-secret
               key: database-username
+          {{- end }}
         - name: PGPASSWORD
+          {{- if .Values.database.zalandoSecretName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.zalandoSecretName | quote }}
+              key: {{ .Values.database.zalandoSecretKey | default "password" | quote }}
+          {{- else }}
           valueFrom:
             secretKeyRef:
               name: {{ include "autonline.fullname" . }}-secret
               key: database-password
+          {{- end }}
         - name: A_HIBERNATE_DDL_AUTO
           value: {{ .Values.database.hibernateDdlAuto | quote }}
         

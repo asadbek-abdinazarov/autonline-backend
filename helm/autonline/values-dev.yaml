@@ -10,13 +10,15 @@ image:
 
 # Database configuration (Zalando PostgreSQL operator)
 database:
-  # host: "autonline-dev.dev.svc.cluster.local"  # Zalando PostgreSQL service name
-  host: "host.docker.internal"
+  host: "autonline-dev.dev.svc.cluster.local"  # Zalando PostgreSQL service name
   port: 5432
   name: "autonline"
   username: "autonline_user"
-  password: "autonline123"  # Set via secret in production
+  password: ""  # Zalando operator avtomatik parol yaratadi, secret dan olinadi
   hibernateDdlAuto: "update"
+  # Zalando operator secret name format: {postgresql-name}.{team-id}.credentials.postgresql.acid.zalan.do
+  zalandoSecretName: "autonline-dev.autonline.credentials.postgresql.acid.zalan.do"  # Zalando operator secret name
+  zalandoSecretKey: "password"  # Secret key name
 
 # JWT Configuration
 jwt:
