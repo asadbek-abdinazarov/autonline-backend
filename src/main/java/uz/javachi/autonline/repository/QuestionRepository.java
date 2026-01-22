@@ -73,7 +73,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
 
     @Query(value = """
-                SELECT q.question_id,q.photo , q.lesson_id, qt.question_text
+                SELECT q.question_id, q.photo,q.is_active,  q.lesson_id, qt.question_text
                 FROM question q
                 LEFT JOIN question_translation qt on q.question_id = qt.question_id
                     WHERE qt.lang = :lang
